@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8">
+        <title>Die Tabaktrafik</title>
+    </head>
+    <body onload="startGame()">
+        <img src="Textures/Fabrik_x1280.png" alt="null" hidden="true" id="Fabrik">
+        <img src="Textures/Start_x1024.png" alt="null" hidden="true" id="Start">
+        <img src="Textures/Bricks.png" alt="null" hidden="true" id="Bricks">
+        <img src="Textures/Bricks_.png" alt="null" hidden="true" id="Bricks_">
+        <img src="Textures/Bricks__.png" alt="null" hidden="true" id="Bricks__">
+
+        <canvas id="canvas">
+        </canvas>
+
+        <script>
+            document.addEventListener("mousemove", updateCursorPosition);
+
+            const backgroundDetail = 64;
+            const WORLD_WIDTH = 5000;
+            const VIEW_WIDTH = canvas.width;
+            
+            const camera = {
+                x: 0,
+                y: 0
+            };
+
+
+            let isDragging = false;
+            let clientClick = false;
+            
+            let lastX = 0;
+            let velocityX = 0;    
+
+            var gameStarted = false;
+            var frame = 0;
+            var mousePosition;
+            var cursorX;
+            var cursorY;
+            var ctx;
+            var button;
+            var button_;
+            var startButton;
+
+            var startButtonTexture = document.getElementById("Start");
+            var fabrik = document.getElementById("Fabrik");
+            var bricks = document.getElementById("Bricks");
+            var bricks_ = document.getElementById("Bricks_");
+            var bricks__ = document.getElementById("Bricks__");
+
+            
+
+            
+            camera.x = Math.max(0,Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
+
+
+            
+
+
+            
+
+
+            
+            function startGame() 
+            {
+                myGameArea.start();
+
+                button = new canvasButton(400,100,100,100, new canvasButtonTexture("", "rgba(0,0,255,1)", "Click Me"));
+                button_ = new canvasButton(700, 300, 150, 100, new canvasButtonTexture("", "rgba(0,255,255,1)", "Click Me Too"));
+                startButton = new canvasButton(myGameArea.canvas.width / 2 - 300, 100, 600, 300, new canvasButtonTexture(startButtonTexture));
+                startButton.onClick = function()
+                {
+                    gameStarted = true;
+                }
+
+            }
+
+            function addListenersToCanvas(canvas)
+            {
+
+                canvas.addEventListener("pointerdown", e => 
+                {
+                    clientClick = true;
+                    isDragging = true;
+                    lastX = e.clientX;
+                    canvas.setPointerCapture(e.pointerId);
+                });
+
+                canvas.addEventListener("pointermove", e => 
+                {
+                    if (!isDragging) return;
+                    
+                    const dx = e.clientX - lastX;
+                    lastX = e.clientX;
+                    
+                    velocityX = dx;
+                    camera.x -= dx;
+                });
+                
+                
+                canvas.addEventListener("pointerup", () => 
+                {
+                    isDragging = false;
+                });
+            }
+
+            function addListenersToWindow()
+            {
+                window.addEventListener('keydown', function (e) 
+                {
+                    if (e.key === "ArrowDown") 
+                    {
+                            console.log("pressed");
+                    } 
+                });
+                    
+                window.addEventListener('resize', function() 
+                {
+                    document.getElementById("canvas").width = window.innerWidth - 40;
+                    document.getElementById("canvas").height = window.innerHeight - 20;
+                });
+            }
+
+
+
+            var myGameArea = 
+            {
+                canvas : document.getElementById("canvas"),
+                start : function() {
+                    this.canvas.width = window.innerWidth - 40;
+                    this.canvas.height = window.innerHeight - 20;
+                    this.context = this.canvas.getContext("2d");
+                    ctx = this.context;
+                    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+                    this.frameNo = 0;
+                    this.interval = setInterval(updateGameArea, 20);
+
+                    addListenersToCanvas(this.canvas);
+                    addListenersToWindow();
+
+                },
+                updateSize : function()
+                {
+                    
+                },
+                pause : function()
+                {
+                    clearInterval(this.interval);
+                },
+                unpause : function() 
+                {
+                    this.interval = setInterval(updateGameArea, 20);
+                },
+                stop : function() 
+                {
+                    clearInterval(this.interval);
+                },    
+                clear : function() 
+                {
+                    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+            }
+
+
+            function drawObject(obj) 
+            {
+                ctx.drawImage(obj.image, obj.x - camera.x, obj.y - camera.y);
+            }
+
+
+
+            function update() 
+            {
+                if (!isDragging) 
+                {
+                    velocityX *= 0.92;
+                    camera.x -= velocityX;
+                }
+
+                // Clamp
+                camera.x = Math.max(0, Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
+            }   
+            
+
+
+
+        function drawBackground(ctx)
+        {
+            //ctx.filter = "saturate(50%)";
+
+            for(let j = 0; j < (WORLD_WIDTH + myGameArea.canvas.width) / backgroundDetail; j++)
+            {
+                for(let i = 0; i < myGameArea.canvas.height / backgroundDetail; i++)
+                {
+                    if(i + 1 < myGameArea.canvas.height / backgroundDetail)
+                    {
+                        if(j == 0 || j + 3 >= (WORLD_WIDTH + myGameArea.canvas.width) / backgroundDetail)
+                        {
+                            ctx.drawImage(bricks__, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
+                        }
+                        else
+                        {
+                            ctx.drawImage(bricks, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
+                        }
+                    }
+                    else
+                    {
+                        ctx.drawImage(bricks__, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
+                    }
+                }
+            }
+        }
+
+
+        function drawStartScreen()
+        {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+            const BackgroundMoveTiming = 350;
+            
+            if(frame % (BackgroundMoveTiming * 2) < BackgroundMoveTiming)
+            {
+                ctx.drawImage(fabrik, Math.round((frame % BackgroundMoveTiming - BackgroundMoveTiming / 2) * 0.06) - BackgroundMoveTiming / 2 * 0.06, 0, myGameArea.canvas.width * 1.05, myGameArea.canvas.height);
+            }
+            else
+            {
+                ctx.drawImage(fabrik, Math.round((-frame % BackgroundMoveTiming + BackgroundMoveTiming / 2) * 0.06) - BackgroundMoveTiming / 2 * 0.06, 0, myGameArea.canvas.width * 1.05, myGameArea.canvas.height);
+            }
+            
+            const FadeTiming = 100;
+            const MoveTiming = 40;
+            
+            if(!startButton.onClickCheck())
+            {
+
+                if(frame % (FadeTiming * 2) < FadeTiming)
+                {
+                    ctx.globalAlpha = (frame % FadeTiming) / FadeTiming + 0.3;
+                }
+                else
+                {
+                    ctx.globalAlpha = 1 - (frame % FadeTiming) / FadeTiming + 0.3;
+                }
+
+                if(frame % (MoveTiming * 2) < MoveTiming)
+                {
+                    if(frame % (MoveTiming / 4) == 0)
+                    {
+                        startButton.y -= 1;
+                    }
+                }
+                else
+                {
+                    if(frame % (MoveTiming / 4) == 0)
+                    {
+                        startButton.y += 1;
+                    }
+                }
+
+            }
+            else
+            {
+                frame = FadeTiming;
+                startButton.y = 100;
+            }
+            startButton.drawSelf();
+            ctx.globalAlpha = 1;
+        }
+        
+
+
+        function updateGameArea()
+        {
+            frame++;
+
+            if(!gameStarted)
+            {
+                drawStartScreen();
+                clientClick = false;
+                return;
+            }
+            
+            update();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+            // Relative to Camera //
+                
+            drawBackground(ctx);
+
+
+            button.drawSelf();
+            button.onClickCheck();
+            button_.drawSelf();
+            button_.onClickCheck();
+
+
+            // Relative to Camera //
+            ctx.restore();
+            // Relative to Screen //
+
+            ctx.font = "20px Arial"
+            ctx.fillText("Frame: " + frame, 20, 20)
+            ctx.fillText(mousePosition, 20, 50);
+            // Relative to Screen //
+
+
+            clientClick = false;
+        }
+
+
+
+
+
+
+
+
+
+            function updateCursorPosition(event) 
+            {
+                cursorX = event.clientX;
+                cursorY = event.clientY;
+                var positionElement = document.getElementById("mousePosition");
+
+                // Update the body's content to display the cursor position
+                mousePosition = "X: " + Math.round(cursorX - 8 + camera.x) + ", Y: " + Math.round(cursorY - 8 + camera.y);
+            }
+
+        
+        function canvasButtonTexture(texture, color = "", text = "")
+        {
+            this.color = color;
+            this.texture = texture;
+            this.text = text;
+        }
+
+
+
+        function canvasButton(x,y, sizeX, sizeY, buttonTexture, enabled = true)
+        {
+            this.x = x;
+            this.y = y;
+            this.sizeX = sizeX;
+            this.sizeY = sizeY;
+            this.buttonTexture = buttonTexture;
+            this.enabled = enabled;
+            
+            
+            this.drawSelf = function()
+            {
+                if(this.buttonTexture.texture !== "")
+                {
+                    ctx.drawImage(this.buttonTexture.texture, this.x, this.y, this.sizeX, this.sizeY)
+                }
+                else
+                {
+                    ctx.fillStyle = this.buttonTexture.color;
+                    ctx.fillRect(this.x, this.y, this.sizeX, this.sizeY);
+                }
+
+                if(buttonTexture.text != "")
+                {
+                    ctx.fillStyle = "black";
+                    ctx.font = Math.round(sizeY / 5) + "px Arial";
+                    ctx.fillText(buttonTexture.text, this.x + (this.sizeX / 2) - (buttonTexture.text.length * 5), this.y + (this.sizeY / 2))
+                }
+            }
+
+            this.onClickCheck = function()
+            {
+                if(cursorX + camera.x >= this.x && cursorX + camera.x <= this.x + this.sizeX &&
+                   cursorY >= this.y && cursorY <= this.y + this.sizeY)
+                {
+                    this.onHover();
+                    return true;
+                }
+
+                return false;
+            }
+
+            this.onHover = function()
+            {
+                console.log("Hovered the Button");
+                if(clientClick)
+                {
+                    this.onClick();
+                }   
+            }
+
+            this.onClick = function()
+            {
+                console.log("Button has been clicked");
+                this.color = "rgba("+ Math.floor((Math.random() * 255)) + "," + 
+                                      Math.floor((Math.random() * 255)) + "," +
+                                      Math.floor((Math.random() * 255)) + "," +
+                                      Math.floor((Math.random() * 255)) +")";
+                console.log("New Color: " + this.color);
+            }
+        }      
+
+
+        </script>
+    </body>
+</html>
