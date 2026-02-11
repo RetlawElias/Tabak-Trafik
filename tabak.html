@@ -4,13 +4,27 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta charset="UTF-8">
         <title>Die Tabaktrafik</title>
+        <style>
+            body {
+                margin: 0px;
+            }
+
+            canvas {
+                margin: 0px;
+                padding: 0px;
+            }
+        </style>
     </head>
     <body onload="startGame()">
+        <img src="Textures/Background_x1280.png" alt="null" hidden="true" id="Background">
+        <img src="Textures/Mountains_x1280.png" alt="null" hidden="true" id="Mountains">
+        <img src="Textures/Cloudpattern_x5120.png" alt="null" hidden="true" id="Cloudpattern">
+        <img src="Textures/Valley_x1280.png" alt="null" hidden="true" id="Valley">
         <img src="Textures/Fabrik_x1280.png" alt="null" hidden="true" id="Fabrik">
         <img src="Textures/Start_x1024.png" alt="null" hidden="true" id="Start">
         <img src="Textures/Bricks.png" alt="null" hidden="true" id="Bricks">
-        <img src="Textures/Bricks_.png" alt="null" hidden="true" id="Bricks_">
-        <img src="Textures/Bricks__.png" alt="null" hidden="true" id="Bricks__">
+        <img src="Textures/Bricks_Tinted.png" alt="null" hidden="true" id="Bricks_">
+        <img src="Textures/Bricks_Tinted_.png" alt="null" hidden="true" id="Bricks__">
 
         <canvas id="canvas">
         </canvas>
@@ -22,10 +36,56 @@
             const WORLD_WIDTH = 5000;
             const VIEW_WIDTH = canvas.width;
             
+
+            class BackgroundLayer 
+            {
+                constructor(image, speed, offset = 0, isCloudPattern = false) 
+                {
+                    this.image = image;
+                    this.speed = speed;
+                    this.x = offset;
+                    this.y = 0;
+                    this.isCloudPattern = isCloudPattern;
+                }
+
+                update(direction, dt, preGameOffset) 
+                {
+                    this.x += direction * this.speed * dt;
+                    this.y = Math.round(preGameOffset * this.speed * 4 / 4) * 4;
+                }
+
+                draw(ctx, canvas) 
+                {
+                    if(this.isCloudPattern)
+                    {
+                        ctx.drawImage(this.image,Math.round(this.x * 2),this.y,this.image.width,this.image.height);
+                    }
+                    else
+                    {
+                        ctx.drawImage(this.image,Math.round(this.x * 2),this.y,canvas.width * 1.08,canvas.height);
+                    }
+                }
+            }
+                
+
+
             const camera = {
                 x: 0,
                 y: 0
             };
+
+
+            let direction = 1;        // 1 = right, -1 = left
+            let range = 20;           // max displacement in pixels
+            let baseOffset = 0;
+            let startScreenFadingIterator = 0;
+            let preGameLoadupIterator = 250;
+
+            var startScreenAnimationIterator = 0;
+
+
+            let lastTime = performance.now();
+
 
 
             let isDragging = false;
@@ -44,8 +104,23 @@
             var button_;
             var startButton;
 
-            var startButtonTexture = document.getElementById("Start");
+            var TextureButton = document.getElementById("Start");
+
+            var background = document.getElementById("Background");
+            var cloudspattern = document.getElementById("Cloudpattern");
+            var mountains = document.getElementById("Mountains");
+            var valley = document.getElementById("Valley");
             var fabrik = document.getElementById("Fabrik");
+
+            const layers = [
+                new BackgroundLayer(background, 0.01, -20),
+                new BackgroundLayer(cloudspattern, -30, -20, true),
+                new BackgroundLayer(mountains, 0.5, -20),
+                new BackgroundLayer(valley, 1, -20),
+                new BackgroundLayer(fabrik, 1.5, -45),
+            ];
+
+
             var bricks = document.getElementById("Bricks");
             var bricks_ = document.getElementById("Bricks_");
             var bricks__ = document.getElementById("Bricks__");
@@ -69,7 +144,7 @@
 
                 button = new canvasButton(400,100,100,100, new canvasButtonTexture("", "rgba(0,0,255,1)", "Click Me"));
                 button_ = new canvasButton(700, 300, 150, 100, new canvasButtonTexture("", "rgba(0,255,255,1)", "Click Me Too"));
-                startButton = new canvasButton(myGameArea.canvas.width / 2 - 300, 100, 600, 300, new canvasButtonTexture(startButtonTexture));
+                startButton = new canvasButton(myGameArea.canvas.width / 2 - 250, 100, 500, 250, new canvasButtonTexture(TextureButton));
                 startButton.onClick = function()
                 {
                     gameStarted = true;
@@ -118,8 +193,9 @@
                     
                 window.addEventListener('resize', function() 
                 {
-                    document.getElementById("canvas").width = window.innerWidth - 40;
-                    document.getElementById("canvas").height = window.innerHeight - 20;
+                    document.getElementById("canvas").width = window.innerWidth - 0;
+                    document.getElementById("canvas").height = window.innerHeight - 4;
+                    realignGUI();
                 });
             }
 
@@ -129,8 +205,8 @@
             {
                 canvas : document.getElementById("canvas"),
                 start : function() {
-                    this.canvas.width = window.innerWidth - 40;
-                    this.canvas.height = window.innerHeight - 20;
+                    this.canvas.width = window.innerWidth - 0;
+                    this.canvas.height = window.innerHeight - 4;
                     this.context = this.canvas.getContext("2d");
                     ctx = this.context;
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
@@ -213,58 +289,54 @@
             }
         }
 
-
-        function drawStartScreen()
+        function realignGUI()
         {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            startButton.x = myGameArea.canvas.width / 2 - (myGameArea.canvas.width / 4 / 2);
+            startButton.sizeX = myGameArea.canvas.width / 4;
+            startButton.sizeY = myGameArea.canvas.height / 4;
+        }
 
 
-            const BackgroundMoveTiming = 350;
-            
-            if(frame % (BackgroundMoveTiming * 2) < BackgroundMoveTiming)
-            {
-                ctx.drawImage(fabrik, Math.round((frame % BackgroundMoveTiming - BackgroundMoveTiming / 2) * 0.06) - BackgroundMoveTiming / 2 * 0.06, 0, myGameArea.canvas.width * 1.05, myGameArea.canvas.height);
-            }
-            else
-            {
-                ctx.drawImage(fabrik, Math.round((-frame % BackgroundMoveTiming + BackgroundMoveTiming / 2) * 0.06) - BackgroundMoveTiming / 2 * 0.06, 0, myGameArea.canvas.width * 1.05, myGameArea.canvas.height);
-            }
-            
+
+        function drawStartButton()
+        {
+
+
+            //Start-Button
             const FadeTiming = 100;
             const MoveTiming = 40;
             
-            if(!startButton.onClickCheck())
-            {
 
-                if(frame % (FadeTiming * 2) < FadeTiming)
+            if(startScreenAnimationIterator % (MoveTiming * 2) < MoveTiming)
                 {
-                    ctx.globalAlpha = (frame % FadeTiming) / FadeTiming + 0.3;
-                }
-                else
-                {
-                    ctx.globalAlpha = 1 - (frame % FadeTiming) / FadeTiming + 0.3;
-                }
-
-                if(frame % (MoveTiming * 2) < MoveTiming)
-                {
-                    if(frame % (MoveTiming / 4) == 0)
+                    if(startScreenAnimationIterator % (MoveTiming / 4) == 0)
                     {
                         startButton.y -= 1;
                     }
                 }
                 else
                 {
-                    if(frame % (MoveTiming / 4) == 0)
+                    if(startScreenAnimationIterator % (MoveTiming / 4) == 0)
                     {
                         startButton.y += 1;
                     }
                 }
 
+            if(!startButton.onClickCheck())
+            {
+
+                if(startScreenFadingIterator % (FadeTiming * 2) < FadeTiming)
+                {
+                    ctx.globalAlpha = (startScreenFadingIterator % FadeTiming) / FadeTiming + 0.3;
+                }
+                else
+                {
+                    ctx.globalAlpha = 1 - (startScreenFadingIterator % FadeTiming) / FadeTiming + 0.3;
+                }
             }
             else
             {
-                frame = FadeTiming;
-                startButton.y = 100;
+                startScreenFadingIterator = FadeTiming;
             }
             startButton.drawSelf();
             ctx.globalAlpha = 1;
@@ -274,11 +346,48 @@
 
         function updateGameArea()
         {
+            const now = performance.now();
+            const dt = (now - lastTime) / 1000; // seconds
+            
             frame++;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if(!gameStarted)
             {
-                drawStartScreen();
+                
+                lastTime = now;
+                baseOffset += direction * dt;
+                
+                
+                if (Math.abs(baseOffset) > range) 
+                {
+                    direction *= -1;
+                }
+                
+                
+                
+                if(preGameLoadupIterator > 0 && preGameLoadupIterator < 150)
+                {
+                    preGameLoadupIterator--;
+                    layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
+                    layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
+                }
+                else if(preGameLoadupIterator < 150)
+                {
+                    startScreenFadingIterator++;
+                    layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
+                    layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
+                    drawStartButton();
+                }
+                else
+                {
+                    layers.forEach(layer => layer.update(direction, dt, 150));
+                    layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
+                    preGameLoadupIterator--;
+                }
+                
+                startScreenAnimationIterator++;
                 clientClick = false;
                 return;
             }
@@ -403,6 +512,11 @@
             }
         }      
 
+
+
+
+
+        
 
         </script>
     </body>
