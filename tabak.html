@@ -16,6 +16,8 @@
         </style>
     </head>
     <body onload="startGame()">
+        <img src="Textures/Upgrade_x640.png" alt="null" hidden="true" id="Upgrade">
+        <img src="Textures/Tabak_x640.png" alt="null" hidden="true" id="Cigarettes">
         <img src="Textures/Background_x1280.png" alt="null" hidden="true" id="Background">
         <img src="Textures/Mountains_x1280.png" alt="null" hidden="true" id="Mountains">
         <img src="Textures/Cloudpattern_x5120.png" alt="null" hidden="true" id="Cloudpattern">
@@ -81,6 +83,7 @@
             let startScreenFadingIterator = 0;
             let preGameLoadupIterator = 250;
 
+
             var startScreenAnimationIterator = 0;
 
 
@@ -93,6 +96,17 @@
             
             let lastX = 0;
             let velocityX = 0;    
+            
+
+
+            // Game Variables
+            var cigarettes = 0;
+            var cigarettesGain = 0;
+            var machine1BaseCost = 10;
+            var machine1CostMultiplier = 0;
+
+
+
 
             var gameStarted = false;
             var frame = 0;
@@ -103,9 +117,12 @@
             var button;
             var button_;
             var startButton;
+            var upgradeButton;
 
             var TextureButton = document.getElementById("Start");
+            var TextureUpgrade = document.getElementById("Upgrade");
 
+            var cigarettesTexture = document.getElementById("Cigarettes");
             var background = document.getElementById("Background");
             var cloudspattern = document.getElementById("Cloudpattern");
             var mountains = document.getElementById("Mountains");
@@ -133,8 +150,6 @@
 
             
 
-            //Testchange
-            //Testchange 2
 
 
             
@@ -142,14 +157,28 @@
             {
                 myGameArea.start();
 
-                button = new canvasButton(400,100,100,100, new canvasButtonTexture("", "rgba(0,0,255,1)", "Click Me"));
-                button_ = new canvasButton(700, 300, 150, 100, new canvasButtonTexture("", "rgba(0,255,255,1)", "Click Me Too"));
                 startButton = new canvasButton(myGameArea.canvas.width / 2 - 250, 100, 500, 250, new canvasButtonTexture(TextureButton));
                 startButton.onClick = function()
                 {
                     gameStarted = true;
                 }
+                
+                upgradeButton = new canvasButton(300, 800, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"));
+                upgradeButton.onClick = function()
+                {
+                    if(cigarettes >= machine1BaseCost * machine1CostMultiplier)
+                    {
+                        cigarettes -= machine1BaseCost * machine1CostMultiplier;
 
+                        if(cigarettesGain == 0)
+                        {
+                            cigarettesGain += 0.01;
+                        }
+
+                        cigarettesGain += 0.006;
+                        machine1CostMultiplier += 1;
+                    }
+                }
             }
 
             function addListenersToCanvas(canvas)
@@ -392,30 +421,60 @@
                 return;
             }
             
+
+
+
+
+
+
+
+
             update();
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
             ctx.save();
             ctx.translate(-camera.x, -camera.y);
+
+
+
+
+            cigarettes += cigarettesGain;
+
+
             // Relative to Camera //
                 
             drawBackground(ctx);
 
 
-            button.drawSelf();
-            button.onClickCheck();
-            button_.drawSelf();
-            button_.onClickCheck();
+            
+            upgradeButton.buttonTexture.text = (machine1BaseCost * machine1CostMultiplier).toString();
+            if(upgradeButton.buttonTexture.text == 0)
+            {
+                upgradeButton.buttonTexture.text = "Free";
+            }
+
+            upgradeButton.drawSelf();
+            upgradeButton.onClickCheck();
 
 
             // Relative to Camera //
             ctx.restore();
             // Relative to Screen //
 
-            ctx.font = "20px Arial"
-            ctx.fillText("Frame: " + frame, 20, 20)
+            ctx.font = "20px Arial";
+            ctx.fillText("Frame: " + frame, 20, 20);
             ctx.fillText(mousePosition, 20, 50);
+
+
+            ctx.fillStyle = "rgba(255,255,255,0.3)";
+            ctx.fillRect(canvas.width / 2 - 100, 0, 200, 100);
+            ctx.drawImage(cigarettesTexture, canvas.width / 2 - 100, 5, 50, 50);
+            ctx.fillStyle = "rgba(0,0,0,1)";
+            ctx.font = "40px Titanic";
+            ctx.fillText(Math.floor(cigarettes), canvas.width / 2, 40);
+
+
             // Relative to Screen //
 
 
@@ -443,8 +502,8 @@
         
         function canvasButtonTexture(texture, color = "", text = "")
         {
-            this.color = color;
             this.texture = texture;
+            this.color = color;
             this.text = text;
         }
 
