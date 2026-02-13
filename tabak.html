@@ -102,8 +102,15 @@
             // Game Variables
             var cigarettes = 0;
             var cigarettesGain = 0;
-            var machine1BaseCost = 10;
-            var machine1CostMultiplier = 0;
+            
+            
+            var machineBaseCosts = [10, 30, 100, 250, 1000, 5000, 20000, 100000, 500000, 10000000];
+            var machineCostMultipliers = [0,1,1,1,1,1,1,1,1,1];
+            
+            //UI
+            var upgradeButtons = [];
+
+
 
 
 
@@ -117,7 +124,7 @@
             var button;
             var button_;
             var startButton;
-            var upgradeButton;
+            
 
             var TextureButton = document.getElementById("Start");
             var TextureUpgrade = document.getElementById("Upgrade");
@@ -163,20 +170,72 @@
                     gameStarted = true;
                 }
                 
-                upgradeButton = new canvasButton(300, 800, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"));
-                upgradeButton.onClick = function()
+
+                for(let i = 0; i < 10; i++)
                 {
-                    if(cigarettes >= machine1BaseCost * machine1CostMultiplier)
+                    upgradeButtons[i] = new canvasButton(300 + i * 200, 800, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"));
+                
+
+                    upgradeButtons[i].onClick = function()
                     {
-                        cigarettes -= machine1BaseCost * machine1CostMultiplier;
-
-                        if(cigarettesGain == 0)
+                        if(cigarettes >= machineBaseCosts[i] * machineCostMultipliers[i])
                         {
-                            cigarettesGain += 0.01;
-                        }
+                            cigarettes -= machineBaseCosts[i] * machineCostMultipliers[i];
+                            
 
-                        cigarettesGain += 0.006;
-                        machine1CostMultiplier += 1;
+                            switch(i)
+                            {
+                                case 0:
+                                    if(cigarettesGain == 0)
+                                    {
+                                        cigarettesGain += 0.01;
+                                        machineCostMultipliers[i] += 1;
+                                    }
+                                    else
+                                    {
+                                        machineCostMultipliers[i] *= 1.1;
+                                    }
+                            
+                                    cigarettesGain += 0.006;
+                                    break;
+                                case 1:
+                                    cigarettesGain += 0.03;
+                                    machineCostMultipliers[i] *= 1.1;
+                                    break;
+                                case 2:
+                                    cigarettesGain += 0.1;
+                                    machineCostMultipliers[i] *= 1.1;
+                                    break;
+                                case 3:
+                                    cigarettesGain += 0.25;
+                                    machineCostMultipliers[i] *= 1.1;
+                                    break;
+                                case 4:
+                                    cigarettesGain += 0.75;
+                                    machineCostMultipliers[i] *= 1.1;
+                                    break;
+                                case 5:
+                                    cigarettesGain += 1.5;
+                                    machineCostMultipliers[i] *= 1.1;
+                                    break;
+                                case 6:
+                                    cigarettesGain += 2.5;
+                                    machineCostMultipliers[i] *= 1.1;
+                                    break;
+                                case 7:
+                                    cigarettesGain += 4.0;
+                                    machineCostMultipliers[i] *= 1.1;
+                                    break;
+                                case 8:
+                                    cigarettesGain += 4.0;
+                                    machineCostMultipliers[i] *= 1.1;
+                                    break;
+                                case 9:
+                                    cigarettesGain += 10.0;
+                                    machineCostMultipliers[i] *= 1.1;
+                                    break;
+                            }
+                        }
                     }
                 }
             }
@@ -186,12 +245,11 @@
 
                 canvas.addEventListener("pointerdown", e => 
                 {
-                    clientClick = true;
                     isDragging = true;
                     lastX = e.clientX;
                     canvas.setPointerCapture(e.pointerId);
                 });
-
+                
                 canvas.addEventListener("pointermove", e => 
                 {
                     if (!isDragging) return;
@@ -206,6 +264,7 @@
                 
                 canvas.addEventListener("pointerup", () => 
                 {
+                    clientClick = true;
                     isDragging = false;
                 });
             }
@@ -446,16 +505,9 @@
                 
             drawBackground(ctx);
 
-
+            drawButtonsAndLabels();
             
-            upgradeButton.buttonTexture.text = (machine1BaseCost * machine1CostMultiplier).toString();
-            if(upgradeButton.buttonTexture.text == 0)
-            {
-                upgradeButton.buttonTexture.text = "Free";
-            }
-
-            upgradeButton.drawSelf();
-            upgradeButton.onClickCheck();
+            
 
 
             // Relative to Camera //
@@ -485,7 +537,20 @@
 
 
 
+        function drawButtonsAndLabels()
+        {
+            for(let i = 0; i < upgradeButtons.length; i++)
+            {
+                upgradeButtons[i].buttonTexture.text = Math.ceil(machineBaseCosts[i] * machineCostMultipliers[i]).toString();
+                if(upgradeButtons[i].buttonTexture.text == 0)
+                {
+                    upgradeButtons[i].buttonTexture.text = "Free";
+                }
 
+                upgradeButtons[i].drawSelf();
+                upgradeButtons[i].onClickCheck();
+            }
+        }
 
 
 
