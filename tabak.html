@@ -27,6 +27,12 @@
         <img src="Textures/Bricks.png" alt="null" hidden="true" id="Bricks">
         <img src="Textures/Bricks_Tinted.png" alt="null" hidden="true" id="Bricks_">
         <img src="Textures/Bricks_Tinted_.png" alt="null" hidden="true" id="Bricks__">
+        <img src="Textures/BricksAngled.png" alt="null" hidden="true" id="BricksAngled">
+        <img src="Textures/BricksAngledBordered.png" alt="null" hidden="true" id="BricksAngledBordered">
+        <img src="Textures/BricksGround.png" alt="null" hidden="true" id="BricksGround">
+        <img src="Textures/BricksGroundBordered.png" alt="null" hidden="true" id="BricksGroundBordered">
+        <img src="Textures/BricksTransition.png" alt="null" hidden="true" id="BricksTransition">
+
 
         <canvas id="canvas">
         </canvas>
@@ -34,7 +40,7 @@
         <script>
             document.addEventListener("mousemove", updateCursorPosition);
 
-            const backgroundDetail = 64;
+            const backgroundDetail = 92;
             const WORLD_WIDTH = 5000;
             const VIEW_WIDTH = canvas.width;
             
@@ -148,8 +154,11 @@
             var bricks = document.getElementById("Bricks");
             var bricks_ = document.getElementById("Bricks_");
             var bricks__ = document.getElementById("Bricks__");
-
-            
+            var bricksAngled = document.getElementById("BricksAngled");
+            var bricksAngledBordered = document.getElementById("BricksAngledBordered");
+            var bricksGround = document.getElementById("BricksGround");
+            var bricksGroundBordered = document.getElementById("BricksGroundBordered");
+            var bricksTransition = document.getElementById("BricksTransition");
 
             
             camera.x = Math.max(0,Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
@@ -358,20 +367,28 @@
             {
                 for(let i = 0; i < myGameArea.canvas.height / backgroundDetail; i++)
                 {
-                    if(i + 1 < myGameArea.canvas.height / backgroundDetail)
+                    if(i + 3 < myGameArea.canvas.height / backgroundDetail)
                     {
-                        if(j == 0 || j + 3 >= (WORLD_WIDTH + myGameArea.canvas.width) / backgroundDetail)
+                        if(j == 2)
                         {
-                            ctx.drawImage(bricks__, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
+                            ctx.drawImage(bricksAngledBordered, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
+                        }
+                        else if(j <= 2)
+                        {
+                            ctx.drawImage(bricksAngled, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
                         }
                         else
                         {
                             ctx.drawImage(bricks, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
                         }
                     }
+                    else if(i + 2 < myGameArea.canvas.height / backgroundDetail)
+                    {
+                        ctx.drawImage(bricksGroundBordered, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
+                    }
                     else
                     {
-                        ctx.drawImage(bricks__, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
+                        ctx.drawImage(bricksGround, backgroundDetail * j, i * backgroundDetail, backgroundDetail, backgroundDetail);
                     }
                 }
             }
