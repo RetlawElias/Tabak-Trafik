@@ -1,0 +1,4 @@
+UI:
+    - No Overlay priorities. (Button can be clicked though it is not visible)
+    - Buttons can only be absolute and not relative. (onClickCheck is positionally different from the actual button location)
+    - Dragging is possible in Panel-screens and should be stopped while active.
