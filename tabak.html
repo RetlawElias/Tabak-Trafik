@@ -79,6 +79,63 @@
             }
                 
 
+            const UIManager = 
+            {
+                elements: [],
+                
+                add(element) 
+                {
+                    this.elements.push(element);
+                },
+
+                handleClick(mouseX, mouseY) 
+                {
+                    console.log("Click at: " + mouseX + ", " + mouseY);
+                    
+                    // Iterate in reverse draw order (topmost first)
+                    for (let i = this.elements.length - 1; i >= 0; i--) 
+                    {
+                        const element = this.elements[i];
+
+                        
+                        if (element.hitTest(mouseX, mouseY)) 
+                        {
+                            console.log("true");
+
+                            if (element.blocksInput) 
+                            {
+                                element.onClick();
+                                return;
+                            }
+                        }
+                    }
+                },
+
+                draw(absolute) 
+                {
+                    if(absolute)
+                    {
+                        this.elements.forEach(element => 
+                        {
+                            if(element.isAbsolute)
+                            {
+                                element.drawSelf();
+                            }
+                        });
+                    }
+                    else
+                    {
+                        this.elements.forEach(element => 
+                        {
+                            if(!element.isAbsolute)
+                            {
+                                element.drawSelf();
+                            }
+                        });    
+                    }
+                }
+            };
+                
 
             const camera = {
                 x: 0,
@@ -106,6 +163,8 @@
             let lastX = 0;
             let velocityX = 0;    
             
+            var draggingTolerance = 0;
+
 
 
             // Game Variables
@@ -121,7 +180,8 @@
             
             //UI
             var upgradeButtons = [];
-
+            var batchUpgradeButtons = [];
+            var stackUpgradeButtons = [];
 
 
 
@@ -179,25 +239,36 @@
 
 
 
-            
+            // (Setup Loop)
             function startGame() 
             {
                 myGameArea.start();
 
-                startButton = new canvasButton(myGameArea.canvas.width / 2 - 250, 100, 500, 250, new canvasButtonTexture(TextureButton));
+                techtreeButton = new canvasButton(myGameArea.canvas.width / 2 - 150, 0, 200, 50, new canvasButtonTexture("", "Grey", "Techtree"), true);
+                techtreeButton.onClick = function()
+                {
+                    techtreePannel.setActive(!techtreePannel.active);
+                }
+                techtreeButton.setActive(false);
+
+
+
+                startButton = new canvasButton(myGameArea.canvas.width / 2 - 250, 100, 500, 250, new canvasButtonTexture(TextureButton), true);
                 startButton.onClick = function()
                 {
                     gameStarted = true;
+                    startButton.active = false;
+                    techtreeButton.setActive(true);
                 }
                 
 
-                techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(255,255,255,0.4)"));
+                techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(255,255,255,0.4)"), true);
                 
                 
                 techtreeUpgrades = [
-                    new canvasButton(myGameArea.canvas.width / 2 - 150, 50, 200, 75, new canvasButtonTexture("", "Green", "Upgrade 1")),
-                    new canvasButton(myGameArea.canvas.width / 2 + 150, 50, 200, 75, new canvasButtonTexture("", "Green", "Upgrade 2")),
-                    new canvasButton(myGameArea.canvas.width / 2, 150, 200, 75, new canvasButtonTexture("", "Green", "Upgrade 3"))
+                    new canvasButton(myGameArea.canvas.width / 2 - 150, 50, 200, 75, new canvasButtonTexture("", "Green", "Upgrade 1"), true),
+                    new canvasButton(myGameArea.canvas.width / 2 + 150, 50, 200, 75, new canvasButtonTexture("", "Green", "Upgrade 2"), true),
+                    new canvasButton(myGameArea.canvas.width / 2, 150, 200, 75, new canvasButtonTexture("", "Green", "Upgrade 3"), true)
                 ]
                 
                 techtreeUpgrades.forEach(element => {
@@ -207,27 +278,27 @@
                 techtreePannel.setActive(false);
                 
                 
-                techtreeButton = new canvasButton(myGameArea.canvas.width / 2 - 150, 50, 200, 75, new canvasButtonTexture("", "Grey", "Techtree"));
-                techtreeButton.onClick = function()
-                {
-                    techtreePannel.setActive(!techtreePannel.active);
-                }
+                
 
 
+                UIManager.add(startButton);
+                UIManager.add(techtreePannel);
+                UIManager.add(techtreeButton);
 
 
                 for(let i = 0; i < 10; i++)
                 {
-                    upgradeButtons[i] = new canvasButton(300 + i * 200, 800, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"));
-                
-                    
+                    upgradeButtons[i] = new canvasButton(300 + i * 200, 800, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"), false);
+                    batchUpgradeButtons[i] = new canvasButton(upgradeButtons[i].x, upgradeButtons[i].y - 25, 50, 25, new canvasButtonTexture("", "Grey", "5x"), false);
+                    stackUpgradeButtons[i] = new canvasButton(upgradeButtons[i].x + 50, upgradeButtons[i].y - 25, 50, 25, new canvasButtonTexture("", "Grey", "10x"), false);
+
 
                     upgradeButtons[i].onClick = function()
                     {
                         if(cigarettes >= machineBaseCosts[i] * machineCostMultipliers[i])
                         {
                             cigarettes -= machineBaseCosts[i] * machineCostMultipliers[i];
-                            
+                            upgradeCigarettes += 1;
 
                             switch(i)
                             {
@@ -283,6 +354,133 @@
                             }
                         }
                     }
+
+                    
+                    
+                    batchUpgradeButtons[i].onClick = function()
+                    {
+                        let BatchCost = 0;
+
+                        for(let j = 0; j < 5; j++)
+                        {
+                            BatchCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
+                        }
+
+                        if(cigarettes > BatchCost)
+                        {
+                            cigarettes -= BatchCost;
+                            upgradeCigarettes += 5;
+
+                            switch(i)
+                            {
+                                case 0:
+                                    cigarettesGain += 0.006 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                                case 1:
+                                    cigarettesGain += 0.03 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                                case 2:
+                                    cigarettesGain += 0.1 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                                case 3:
+                                    cigarettesGain += 0.25 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                                case 4:
+                                    cigarettesGain += 0.75 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                                case 5:
+                                    cigarettesGain += 1.5 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                                case 6:
+                                    cigarettesGain += 2.5 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                                case 7:
+                                    cigarettesGain += 4.0 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                                case 8:
+                                    cigarettesGain += 4.0 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                                case 9:
+                                    cigarettesGain += 10.0 * 5;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
+                                    break;
+                            }
+                        }
+                    }
+
+                    stackUpgradeButtons[i].onClick = function()
+                    {
+                        let StackCost = 0;
+
+                        for(let j = 0; j < 10; j++)
+                        {
+                            StackCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
+                        }
+
+                        if(cigarettes > StackCost)
+                        {
+                            cigarettes -= StackCost;
+                            upgradeCigarettes += 10;
+
+                            switch(i)
+                            {
+                                case 0:
+                                    cigarettesGain += 0.006 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                                case 1:
+                                    cigarettesGain += 0.03 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                                case 2:
+                                    cigarettesGain += 0.1 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                                case 3:
+                                    cigarettesGain += 0.25 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                                case 4:
+                                    cigarettesGain += 0.75 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                                case 5:
+                                    cigarettesGain += 1.5 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                                case 6:
+                                    cigarettesGain += 2.5 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                                case 7:
+                                    cigarettesGain += 4.0 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                                case 8:
+                                    cigarettesGain += 4.0 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                                case 9:
+                                    cigarettesGain += 10.0 * 10;
+                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                                    break;
+                            }
+                        }
+                    }
+
+                    UIManager.add(upgradeButtons[i]);
+                    UIManager.add(batchUpgradeButtons[i]);
+                    UIManager.add(stackUpgradeButtons[i]);
+
                 }
             }
 
@@ -292,6 +490,7 @@
                 canvas.addEventListener("pointerdown", e => 
                 {
                     isDragging = true;
+                    draggingTolerance = e.clientX;
                     lastX = e.clientX;
                     canvas.setPointerCapture(e.pointerId);
                 });
@@ -301,8 +500,10 @@
                     if (!isDragging) return;
                     
                     const dx = e.clientX - lastX;
+                    draggingTolerance = lastX;
                     lastX = e.clientX;
                     
+                    if(draggingTolerance > lastX - 7 && draggingTolerance < lastX + 7) return;
                     velocityX = dx;
                     camera.x -= dx;
                 });
@@ -312,6 +513,16 @@
                 {
                     clientClick = true;
                     isDragging = false;
+                });
+
+
+                canvas.addEventListener("click", function(e)
+                {
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    UIManager.handleClick(mouseX, mouseY);
                 });
             }
 
@@ -469,19 +680,18 @@
 
                 if(startScreenFadingIterator % (FadeTiming * 2) < FadeTiming)
                 {
-                    ctx.globalAlpha = (startScreenFadingIterator % FadeTiming) / FadeTiming + 0.3;
+                    startButton.setAlpha((startScreenFadingIterator % FadeTiming) / FadeTiming + 0.3)
                 }
                 else
                 {
-                    ctx.globalAlpha = 1 - (startScreenFadingIterator % FadeTiming) / FadeTiming + 0.3;
+                    startButton.setAlpha(1 - (startScreenFadingIterator % FadeTiming) / FadeTiming + 0.3);
                 }
             }
             else
             {
+                startButton.setAlpha(1);
                 startScreenFadingIterator = FadeTiming;
             }
-            startButton.drawSelf();
-            ctx.globalAlpha = 1;
         }
         
 
@@ -497,7 +707,6 @@
 
             if(!gameStarted)
             {
-                
                 lastTime = now;
                 baseOffset += direction * dt;
                 
@@ -521,6 +730,7 @@
                     layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
                     layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
                     drawStartButton();
+                    UIManager.draw(true);
                 }
                 else
                 {
@@ -529,14 +739,13 @@
                     preGameLoadupIterator--;
                 }
                 
+
+
                 startScreenAnimationIterator++;
                 clientClick = false;
                 return;
             }
             
-
-
-
 
 
 
@@ -562,16 +771,15 @@
             drawButtonsAndLabels();
             
             
+            // Camera Elements Only
+            UIManager.draw(false);
 
 
-            // Relative to Camera //
             ctx.restore();
             // Relative to Screen //
 
-            techtreeButton.drawSelf();
-            techtreeButton.onClickCheck();
-
-            techtreePannel.drawSelf();
+            // Screen Elements Only
+            UIManager.draw(true); 
 
 
             ctx.textAlign = "left";
@@ -615,6 +823,49 @@
             ctx.fillText(premiumCigarettes, canvas.width + CIGARETTESPANELOFFSET + 80, 162);
 
 
+
+            for(let i = 0; i < upgradeButtons.length; i++)
+            {
+                if(cigarettes >  Math.ceil(machineBaseCosts[i] * machineCostMultipliers[i]) || upgradeButtons[i].buttonTexture.text == "Free")
+                {
+                    upgradeButtons[i].setAlpha(0.95);
+                }
+                else
+                {
+                    upgradeButtons[i].setAlpha(0.6);
+                }
+
+                let BatchCost = 0;
+
+                for(let j = 0; j < 5; j++)
+                {
+                    BatchCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
+                }
+
+                if(cigarettes > BatchCost)
+                {
+                    batchUpgradeButtons[i].buttonTexture.color = "green";
+                }
+                else
+                {
+                    batchUpgradeButtons[i].buttonTexture.color = "grey";
+                }
+
+                for(let j = 5; j < 10; j++)
+                {
+                    BatchCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
+                }
+
+                if(cigarettes > BatchCost)
+                {
+                    stackUpgradeButtons[i].buttonTexture.color = "green";
+                }
+                else
+                {
+                    stackUpgradeButtons[i].buttonTexture.color = "grey";
+                }
+
+            }
             
 
 
@@ -632,14 +883,25 @@
         {
             for(let i = 0; i < upgradeButtons.length; i++)
             {
-                upgradeButtons[i].buttonTexture.text = Math.ceil(machineBaseCosts[i] * machineCostMultipliers[i]).toString();
+                const val = Math.ceil(machineBaseCosts[i] * machineCostMultipliers[i]);
+
+                switch(true)
+                {
+                    case val >= 1000000:
+                        upgradeButtons[i].buttonTexture.text = (val / 1000000).toFixed(2).toString() + "Mil";
+                        break;
+                    case val >= 1000:
+                        upgradeButtons[i].buttonTexture.text = (val / 1000).toFixed(2).toString() + "Tsd";
+                        break;
+                    default:
+                        upgradeButtons[i].buttonTexture.text = (val).toString()
+                        break;
+                }
+
                 if(upgradeButtons[i].buttonTexture.text == 0)
                 {
                     upgradeButtons[i].buttonTexture.text = "Free";
                 }
-
-                upgradeButtons[i].drawSelf();
-                upgradeButtons[i].onClickCheck();
             }
         }
 
@@ -662,14 +924,16 @@
             this.color = color;
         }
 
-        function canvasPannel(x,y, sizeX, sizeY, pannelTexture)
+        function canvasPannel(x,y, sizeX, sizeY, pannelTexture, isAbsolute)
         {
             this.x = x;
             this.y = y;
             this.sizeX = sizeX;
             this.sizeY = sizeY;
+            this.blocksInput = true;
             this.pannelTexture = pannelTexture;
             this.active = true;
+            this.isAbsolute = isAbsolute;
             this.components = [];
 
             this.addChild = function(child)
@@ -695,23 +959,40 @@
                 }
             }
 
+            this.hitTest = function(mouseX, mouseY)
+            {
+                return 
+                (
+                    mouseX >= this.x &&
+                    mouseX <= this.x + this.sizeX &&
+                    mouseY >= this.y &&
+                    mouseY <= this.y + this.sizeY
+                );
+            }
+            
+            this.onClick = function() 
+            {
+                // empty — but important to block click-through
+            }
+
+
             this.drawSelf = function()
             {
                 if(this.active)
                 {
-                if(this.pannelTexture.texture !== "")
-                {
-                    ctx.drawImage(this.pannelTexture.texture, this.x, this.y, this.sizeX, this.sizeY)
-                }
-                else
-                {
-                    ctx.fillStyle = this.pannelTexture.color;
-                    ctx.fillRect(this.x, this.y, this.sizeX, this.sizeY);
-                }
-
-                this.components.forEach(element => {
-                    element.drawSelf();
-                });
+                    if(this.pannelTexture.texture !== "")
+                    {
+                        ctx.drawImage(this.pannelTexture.texture, this.x, this.y, this.sizeX, this.sizeY)
+                    }
+                    else
+                    {
+                        ctx.fillStyle = this.pannelTexture.color;
+                        ctx.fillRect(this.x, this.y, this.sizeX, this.sizeY);
+                    }
+                    
+                    this.components.forEach(element => {
+                        element.drawSelf();
+                    });
                 }
             }
         }
@@ -726,7 +1007,7 @@
         }
 
 
-        function canvasButton(x,y, sizeX, sizeY, buttonTexture, enabled = true)
+        function canvasButton(x,y, sizeX, sizeY, buttonTexture, isAbsolute, enabled = true)
         {
             this.x = x;
             this.y = y;
@@ -734,7 +1015,10 @@
             this.sizeY = sizeY;
             this.buttonTexture = buttonTexture;
             this.enabled = enabled;
+            this.blocksInput = true;
+            this.isAbsolute = isAbsolute;
             this.active = true;
+            this.alpha = 1;
             
             this.setActive = function(setActive)
             {
@@ -747,23 +1031,35 @@
                     this.active = false;
                 }
             }
+
             
+            this.setAlpha = function(alpha)
+            {
+                this.alpha = alpha;
+            }
+
+
             this.drawSelf = function()
             {
                 if(this.active)
                 {
                 if(this.buttonTexture.texture !== "")
                 {
-                    ctx.drawImage(this.buttonTexture.texture, this.x, this.y, this.sizeX, this.sizeY)
+                    ctx.globalAlpha = this.alpha;
+                    ctx.drawImage(this.buttonTexture.texture, this.x, this.y, this.sizeX, this.sizeY);
+                    ctx.globalAlpha = 1;
                 }
                 else
                 {
+                    ctx.globalAlpha = this.alpha;
                     ctx.fillStyle = this.buttonTexture.color;
                     ctx.fillRect(this.x, this.y, this.sizeX, this.sizeY);
+                    ctx.globalAlpha = 1;
                 }
 
                 if (this.buttonTexture.text !== "")
                 {
+                    ctx.globalAlpha = this.alpha;
                     // Draw text (fitted)
                     const text = this.buttonTexture.text;
                     const paddingX = this.sizeX * 0.1; // 10% horizontal padding
@@ -793,20 +1089,45 @@
                         this.x + this.sizeX / 2,
                         this.y + this.sizeY / 2
                     );
+                    ctx.globalAlpha = 1;
                 }
                 }
             }
 
+            this.hitTest = function(mouseX, mouseY)
+            {
+                if(this.isAbsolute)
+                {
+                    const result =
+                    mouseX >= this.x &&
+                    mouseX <= this.x + this.sizeX &&
+                    mouseY >= this.y &&
+                    mouseY <= this.y + this.sizeY;
+
+                    return result;
+                }
+                else
+                {
+                    const result =
+                    mouseX + camera.x >= this.x &&
+                    mouseX + camera.x <= this.x + this.sizeX &&
+                    mouseY >= this.y &&
+                    mouseY <= this.y + this.sizeY;
+
+                    return result;
+                }
+            }
+            
             this.onClickCheck = function()
             {
                 if(this.active)
                 {
-                if(cursorX + camera.x >= this.x && cursorX + camera.x <= this.x + this.sizeX &&
-                   cursorY >= this.y && cursorY <= this.y + this.sizeY)
-                {
-                    this.onHover();
-                    return true;
-                }
+                    if(cursorX + camera.x >= this.x && cursorX + camera.x <= this.x + this.sizeX &&
+                    cursorY >= this.y && cursorY <= this.y + this.sizeY)
+                    {
+                        this.onHover();
+                        return true;
+                    }
 
                 return false;
                 }
