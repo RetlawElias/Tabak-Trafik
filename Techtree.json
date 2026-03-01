@@ -1,0 +1,29 @@
+{
+    "Upgrade1": 
+    {
+      "Name": "Increase Production Speed 1",
+      "Cost": 5,
+      "Position": [0, 0],
+      "Size": [100, 50],
+      "ToolTip": "Increase: \n +0.5% Income \n\n Decrease: \n -5 Upgrade Points",
+      "Condition": null
+    },
+    "Upgrade2": 
+    {
+      "Name": "Increase Production Speed 2",
+      "Cost": 10,
+      "Position": [100, 0],
+      "Size": [100, 50],
+      "ToolTip": "Increase: \n +1.5% Income \n\n Decrease: \n -10 Upgrade Points",
+      "Condition": null
+    },
+    "Upgrade3": 
+    {
+      "Name": "Increase Production Speed 3",
+      "Cost": 25,
+      "Position": [150, 100],
+      "Size": [100, 50],
+      "ToolTip": "Increase: \n +5% Income \n\n Decrease: \n -25 Upgrade Points",
+      "Condition": ["Upgrade1", "Upgrade2"]
+    }
+}
