@@ -52,6 +52,11 @@
             const CIGARETTESPANELOFFSET = -300;
             
 
+            var audio = new Audio('Audio/Monotone_Labor.mp3');
+
+            
+            
+
             class BackgroundLayer 
             {
                 constructor(image, speed, offset = 0, isCloudPattern = false) 
@@ -198,6 +203,7 @@
             var button;
             var button_;
             var startButton;
+            var audioButton;
             var techtreeButton;
             var techtreePannel;
             var techtreeUpgrades = [];
@@ -246,6 +252,8 @@
             {
                 myGameArea.start();
 
+                
+
                 techtreeButton = new canvasButton(myGameArea.canvas.width / 2 - 150, 0, 200, 50, new canvasButtonTexture("", "Grey", "Techtree"), true);
                 techtreeButton.onClick = function()
                 {
@@ -261,6 +269,24 @@
                     gameStarted = true;
                     startButton.active = false;
                     techtreeButton.setActive(true);
+                }
+
+                audioButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 60, 50, 50, new canvasButtonTexture("", "Red", "🎵"), true);
+                audioButton.onClick = function()
+                {
+                    console.log("Clicked Audio");
+
+                    if(!audio.paused)
+                    {
+                        audio.pause();
+                        audioButton.buttonTexture.color = "Red";
+                    }
+                    else
+                    {
+                        audio.play();
+                        audioButton.buttonTexture.color = "Green";
+                        audio.volume = 0.2;
+                    }
                 }
                 
 
@@ -279,16 +305,11 @@
                 
                 techtreePannel.setActive(false);
                 
-                
-                techtreeButton = new canvasButton(myGameArea.canvas.width / 2 - 150, 50, 200, 75, new canvasButtonTexture("", "Grey", "Techtree"));
-                techtreeButton.onClick = function()
-                {
-                    techtreePannel.setActive(!techtreePannel.active);
-                    isDragging = false; // if the techtree is opened while dragging, then stop dragging
-                }
+    
 
 
                 UIManager.add(startButton);
+                UIManager.add(audioButton);
                 UIManager.add(techtreePannel);
                 UIManager.add(techtreeButton);
 
@@ -662,6 +683,10 @@
             startButton.x = myGameArea.canvas.width / 2 - (myGameArea.canvas.width / 4 / 2);
             startButton.sizeX = myGameArea.canvas.width / 4;
             startButton.sizeY = myGameArea.canvas.height / 4;
+
+            audioButton.x = myGameArea.canvas.width - 60;
+            audioButton.y = myGameArea.canvas.height - 60;
+
         }
 
 
@@ -801,12 +826,9 @@
             ctx.restore();
             // Relative to Screen //
 
-            if(!techtreePannel.active) { 
-                techtreeButton.drawSelf();
-            }
-            
+            UIManager.draw(true);
 
-            techtreePannel.drawSelf();
+            
 
 
             ctx.textAlign = "left";
@@ -1088,7 +1110,7 @@
                 this.alpha = alpha;
             }
 
-
+            // Called Automatically (UIManager)
             this.drawSelf = function()
             {
                 if(this.active)
@@ -1168,11 +1190,13 @@
                 }
             }
             
+
+            // OBSOLETE (No UIManager Supported use)
             this.onClickCheck = function()
             {
                 if(this.active)
                 {
-                    if(cursorX + camera.x >= this.x && cursorX + camera.x <= this.x + this.sizeX &&
+                    if(cursorX >= this.x && cursorX <= this.x + this.sizeX &&
                     cursorY >= this.y && cursorY <= this.y + this.sizeY)
                     {
                         this.onHover();
@@ -1183,6 +1207,7 @@
                 }
             }
 
+            // OBSOLETE (No UIManager Supported use)
             this.onHover = function()
             {
                 console.log("Hovered the Button");
@@ -1192,6 +1217,7 @@
                 }   
             }
 
+            // OBSOLETE (No UIManager Supported use)
             this.onClick = function()
             {
                 console.log("Button has been clicked");
