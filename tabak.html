@@ -293,6 +293,7 @@
                 UIManager.add(techtreeButton);
 
 
+
                 for(let i = 0; i < 10; i++)
                 {
                     upgradeButtons[i] = new canvasButton(300 + i * 200, 800, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"), false);
@@ -497,7 +498,9 @@
 
                 canvas.addEventListener("pointerdown", e => 
                 {
-                     clientClick = true;
+                    isDragging = true;
+                    lastX = e.clientX;
+                    clientClick = true;
 
                     if(techtreePannel.active && !techtreePannel.containsPoint(e.clientX, e.clientY)) { // close techtree panel if click is outside it
                         techtreePannel.setActive(false);
@@ -511,7 +514,6 @@
                     const dx = e.clientX - lastX;
                     draggingTolerance = lastX;
                     lastX = e.clientX;
-                    lastX = e.clientX;
                     velocityX = dx;
                     camera.x -= dx;
                 });
@@ -522,9 +524,9 @@
                     clientClick = true;
                     isDragging = false;
 
-                    if(techtreePannel.active) // close techtree panel no matter where the click is
+                    if(techtreePannel.active && !techtreePannel.hitTest()) // close techtree panel no matter where the click is
                     {
-                        techtreePannel.setActive(false);
+                        //techtreePannel.setActive(false);
                     }
                 });
 
@@ -719,7 +721,8 @@
             if(techtreePannel.active && techtreePannel.containsPoint(cursorX, cursorY))
             {
                 uiBlockingInput = false; // if mouse is over the panel, then block input to the world (buttons will still work)
-            } else
+            } 
+            else
             {
                 uiBlockingInput = true;
             }
@@ -788,7 +791,6 @@
             // Relative to Camera //
                 
             drawBackground(ctx);
-
             drawButtonsAndLabels();
             
             
@@ -801,7 +803,6 @@
 
             if(!techtreePannel.active) { 
                 techtreeButton.drawSelf();
-                techtreeButton.onClickCheck();
             }
             
 
@@ -987,13 +988,26 @@
 
             this.hitTest = function(mouseX, mouseY)
             {
-                return 
-                (
+                if(this.isAbsolute)
+                {
+                    const result =
                     mouseX >= this.x &&
                     mouseX <= this.x + this.sizeX &&
                     mouseY >= this.y &&
-                    mouseY <= this.y + this.sizeY
-                );
+                    mouseY <= this.y + this.sizeY;
+
+                    return result;
+                }
+                else
+                {
+                    const result =
+                    mouseX + camera.x >= this.x &&
+                    mouseX + camera.x <= this.x + this.sizeX &&
+                    mouseY >= this.y &&
+                    mouseY <= this.y + this.sizeY;
+
+                    return result;
+                }
             }
             
             this.onClick = function() 
