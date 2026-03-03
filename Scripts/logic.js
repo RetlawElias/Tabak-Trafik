@@ -51,7 +51,7 @@
             
             var machineBaseCosts = [10, 30, 100, 250, 1000, 5000, 20000, 100000, 500000, 10000000];
             var machineCostMultipliers = [0,1,1,1,1,1,1,1,1,1];
-            
+            var machineLevels = [0,0,0,0,0,0,0,0,0,0];
 
 
             //UI
@@ -95,6 +95,24 @@
             const bricksGroundBordered = document.getElementById("BricksGroundBordered");
             const bricksTransition = document.getElementById("BricksTransition");
 
+
+            // Animated Textures
+            const BoxFrame1 = document.getElementById("Box_Frame1");
+            const BoxFrame2 = document.getElementById("Box_Frame2");
+            const BoxFrame3 = document.getElementById("Box_Frame3");
+
+            const ConveyerFrame1 = document.getElementById("Conveyer_Frame1");
+            const ConveyerFrame2 = document.getElementById("Conveyer_Frame2");
+            const ConveyerFrame3 = document.getElementById("Conveyer_Frame3");
+            const ConveyerFrame4 = document.getElementById("Conveyer_Frame4");
+
+            const MachineFrame1 = document.getElementById("Machine_Frame1");
+            const MachineFrame2 = document.getElementById("Machine_Frame2");
+            const MachineFrame3 = document.getElementById("Machine_Frame3");
+            const MachineFrame4 = document.getElementById("Machine_Frame4");
+            const MachineFrame5 = document.getElementById("Machine_Frame5");
+            const MachineFrame6 = document.getElementById("Machine_Frame6");
+            const MachineFrame7 = document.getElementById("Machine_Frame7");
 
 
 
@@ -221,7 +239,7 @@
                 // Button Array Loop
                 for(let i = 0; i < 10; i++)
                 {
-                    upgradeButtons[i] = new canvasButton(300 + i * 200, 800, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"), false);
+                    upgradeButtons[i] = new canvasButton(300 + i * 600, 400, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"), false);
                     batchUpgradeButtons[i] = new canvasButton(upgradeButtons[i].x, upgradeButtons[i].y - 25, 50, 25, new canvasButtonTexture("", "Grey", "5x"), false);
                     stackUpgradeButtons[i] = new canvasButton(upgradeButtons[i].x + 50, upgradeButtons[i].y - 25, 50, 25, new canvasButtonTexture("", "Grey", "10x"), false);
 
@@ -246,42 +264,52 @@
                                     {
                                         machineCostMultipliers[i] *= 1.1;
                                     }
-                            
+                                    
+                                    machineLevels[i]++;
                                     cigarettesGain += 0.006;
                                     break;
                                 case 1:
+                                    machineLevels[i]++;
                                     cigarettesGain += 0.03;
                                     machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 2:
+                                    machineLevels[i]++;
                                     cigarettesGain += 0.1;
                                     machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 3:
+                                    machineLevels[i]++;
                                     cigarettesGain += 0.25;
                                     machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 4:
+                                    machineLevels[i]++;
                                     cigarettesGain += 0.75;
                                     machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 5:
+                                    machineLevels[i]++;
                                     cigarettesGain += 1.5;
                                     machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 6:
+                                    machineLevels[i]++;
                                     cigarettesGain += 2.5;
                                     machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 7:
+                                    machineLevels[i]++;
                                     cigarettesGain += 4.0;
                                     machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 8:
+                                    machineLevels[i]++;
                                     cigarettesGain += 4.0;
                                     machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 9:
+                                    machineLevels[i]++;
                                     cigarettesGain += 10.0;
                                     machineCostMultipliers[i] *= 1.1;
                                     break;
@@ -690,6 +718,68 @@
             
             // Camera Elements Only
             UIManager.draw(false);
+
+            for(let i = 0; i < machineLevels.length; i++)
+            {
+                if(machineLevels[i] > 0)
+                {
+
+                    const machineAnimationSpeed = 150;
+
+                    
+
+                    if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 6)
+                    {
+                        ctx.drawImage(MachineFrame1, 200 + 600 * i, 512, 256, 512);
+                    }
+                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 5)
+                    {
+                        ctx.drawImage(MachineFrame7, 200 + 600 * i, 500, 256, 512);
+                    }
+                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 4)
+                    {
+                        ctx.drawImage(MachineFrame6, 200 + 600 * i, 500, 256, 512);
+                    }
+                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 3)
+                    {
+                        ctx.drawImage(MachineFrame5, 200 + 600 * i, 500, 256, 512);
+                    }
+                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 2)
+                    {
+                        ctx.drawImage(MachineFrame4, 200 + 600 * i, 500, 256, 512);
+                    }
+                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17))
+                    {
+                        ctx.drawImage(MachineFrame3, 200 + 600 * i, 500, 256, 512);
+                    }
+                    else if(frame % machineAnimationSpeed >= 0)
+                    {
+                        ctx.drawImage(MachineFrame2, 200 + 600 * i, 500, 256, 512);
+                    }
+
+
+                    const conveyerAnimationSpeed = 50;
+
+                    if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4) * 3)
+                    {
+                        ctx.drawImage(ConveyerFrame4, 390 + 600 * i, 760, 512, 256);
+                    }
+                    else if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4) * 2)
+                    {
+                        ctx.drawImage(ConveyerFrame3, 390 + 600 * i, 760, 512, 256);
+                    }
+                    else if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4))
+                    {
+                        ctx.drawImage(ConveyerFrame2, 390 + 600 * i, 760, 512, 256);
+                    }
+                    else if(frame % conveyerAnimationSpeed >= 0)
+                    {
+                        ctx.drawImage(ConveyerFrame1, 390 + 600 * i, 760, 512, 256);
+                    }
+
+                    ctx.drawImage(BoxFrame1, 735 + 600 * i, 830, 256, 256);
+                }
+            }
 
 
             ctx.restore();
