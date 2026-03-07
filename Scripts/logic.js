@@ -49,7 +49,7 @@
             let clientClick = false;
             let uiBlockingInput = false;
 
-
+            var animatedCigarettes = [];
             
             // Game Variables
             var gameStarted = false;
@@ -671,7 +671,6 @@
                 techtreePanelOffsetY = Math.max(0, Math.min(500, techtreePanelOffsetY));
                 techtreeUpgrades.forEach(element => {
                     element.updateOffset([techtreePanelOffsetX, techtreePanelOffsetY])
-                    element.drawConnections(ctx, techtreeUpgrades);
                 });
 
             }   
@@ -849,6 +848,13 @@
 
                     const conveyerAnimationSpeed = 50;
 
+
+                    if(frame % (conveyerAnimationSpeed * 10) == 0)
+                    {
+                        animatedCigarettes.push([390 + 600 * i, 760 + 256 / 2 - 50, 0]);
+                    }
+
+
                     if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4) * 3)
                     {
                         ctx.drawImage(ConveyerFrame4, 390 + 600 * i, 760, 512, 256);
@@ -871,10 +877,39 @@
             }
 
 
+            animatedCigarettes.forEach(element => {
+                if(frame % Math.round(50 / 4) == 0)
+                    {
+                        element[0] += 4;
+                    }
+                element[2]++; // Lifetime
+                if(element[2] > 1250)
+                {
+                    element[1] += 1;
+                }
+                if(element[2] > 1300)
+                {
+                    animatedCigarettes.splice(animatedCigarettes.indexOf(element), 1);
+                }
+                ctx.drawImage(cigarettesTexture, element[0], element[1], 64, 64);
+                });
+
+                
+
+
+
+
             ctx.restore();
 
             // Relative to Screen //
             UIManager.draw(ctx, true);
+
+            if(techtreePannel.active)
+            {
+                techtreeUpgrades.forEach(element => {
+                    element.drawConnections(ctx, techtreeUpgrades);
+                });
+            }
 
         
 

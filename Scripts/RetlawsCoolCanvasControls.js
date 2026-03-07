@@ -254,19 +254,20 @@ export class techtreeUpgrade extends canvasElement
             
             drawConnections(ctx, objectArray)
             {
+                
                 // Connections
                 if(this.condition.length > 0)
-                {
+                    {
                     for(let i = 0; i < this.condition.length; i++)
                         {
                             for(let j = 0; j < objectArray.length; j++)
                                 {
                                     if(this.condition[i] == objectArray[j].name)
                                     {
-                                        
+
                                         const differentialX = this.x + this.sizeX / 2 - (objectArray[j].x + objectArray[j].sizeX / 2);
                                         const differentialY = this.y - (objectArray[j].y + objectArray[j].sizeY);
-                                        
+
                                         ctx.beginPath();
                                         ctx.lineWidth = 8;
                                         
