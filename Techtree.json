@@ -6,7 +6,14 @@
       "Position": [-100, 0],
       "Size": [100, 50],
       "ToolTip": "Increase: \n +0.5% Income \n\n Decrease: \n -5 Upgrade Points",
-      "Condition": []
+      "Condition": [],
+      "Effects": [
+        {
+          "target": "cigarettesGainMultiplier",
+          "operation": "multiply",
+          "value": 1.05
+        }
+      ]
     },
     {
       "Name": "Increase Production Speed 2",
@@ -14,7 +21,14 @@
       "Position": [100, 0],
       "Size": [100, 50],
       "ToolTip": "Increase: \n +1.5% Income \n\n Decrease: \n -10 Upgrade Points",
-      "Condition": []
+      "Condition": [],
+      "Effects": [
+        {
+          "target": "cigarettesGainMultiplier",
+          "operation": "multiply",
+          "value": 1.15
+        }
+      ]
     },
     {
       "Name": "Increase Production Speed 3",
@@ -22,7 +36,14 @@
       "Position": [0, 120],
       "Size": [100, 50],
       "ToolTip": "Increase: \n +5% Income \n\n Decrease: \n -25 Upgrade Points",
-      "Condition": ["Increase Production Speed 1","Increase Production Speed 2"]
+      "Condition": ["Increase Production Speed 1","Increase Production Speed 2"],
+      "Effects": [
+        {
+          "target": "cigarettesGainMultiplier",
+          "operation": "multiply",
+          "value": 1.5
+        }
+      ]
     }
   ]
 }

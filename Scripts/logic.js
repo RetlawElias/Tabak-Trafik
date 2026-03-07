@@ -60,6 +60,11 @@
             var upgradeCigarettes = 1000;
             var premiumCigarettes = 1000;
             
+            const gameState = 
+            {
+                cigarettesGainMultiplier: 1
+            };
+
             var cigarettesGain = 0;
             
             var machineBaseCosts = [10, 30, 100, 250, 1000, 5000, 20000, 100000, 500000, 10000000];
@@ -185,20 +190,34 @@
                     
                     console.log(data);
 
-                    data.Upgrades.forEach(element =>
-                        techtreeUpgrades.push(
-                            new techtreeUpgrade(
-                                element.Position[0] + canvas.width / 2, 
-                                element.Position[1] + 100, 
-                                element.Size[0], 
-                                element.Size[1], 
-                                new canvasButtonTexture("", "Green", element.Name),
-                                element.Name,
-                                element.Cost,
-                                element.Condition,
+
+                    for(let i = 0; i < data.Upgrades.length; i++)
+                    {
+                        let obj = new techtreeUpgrade(
+                                data.Upgrades[i].Position[0] + canvas.width / 2, 
+                                data.Upgrades[i].Position[1] + 100, 
+                                data.Upgrades[i].Size[0], 
+                                data.Upgrades[i].Size[1], 
+                                new canvasButtonTexture("", "Green", data.Upgrades[i].Name),
+                                data.Upgrades[i].Name,
+                                data.Upgrades[i].Cost,
+                                data.Upgrades[i].Condition,
                                 true
-                            ))
-                    );      
+                            );
+
+                        obj.onClick = function()
+                        {
+                            if(upgradeCigarettes >= obj.cost)
+                            {
+                                upgradeCigarettes -= obj.cost;
+                                applyUpgrade(data.Upgrades[i].Effects);
+                            }
+                                
+                        }
+
+                        techtreeUpgrades.push(obj);
+                        
+                    }  
 
                     techtreeUpgrades.forEach(element => 
                     {
@@ -794,7 +813,7 @@
             ctx.translate(-camera.x, -camera.y);
 
 
-            cigarettes += cigarettesGain;
+            cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"];
 
 
 
@@ -1102,3 +1121,28 @@
                 // Update the body's content to display the cursor position
                 mousePosition = "X: " + Math.round(cursorX - 8 + camera.x) + ", Y: " + Math.round(cursorY - 8 + camera.y);
             }
+
+
+
+function applyUpgrade(upgrade) {
+
+    upgrade.forEach(effect => {
+
+        const target = effect.target;
+
+        switch (effect.operation) {
+
+            case "add":
+                gameState[target] += effect.value;
+                break;
+
+            case "multiply":
+                gameState[target] *= effect.value;
+                break;
+
+            case "set":
+                gameState[target] = effect.value;
+                break;
+        }
+    });
+}
