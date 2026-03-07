@@ -1,4 +1,5 @@
             import { UIManager, camera} from "./dom.js";
+            import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade } from "./RetlawsCoolCanvasControls.js";
 
 
             document.addEventListener("mousemove", updateCursorPosition);
@@ -11,6 +12,7 @@
 
             const backgroundDetail = 92;
             const WORLD_WIDTH = 5000;
+            const TECHTREE_WIDTH = 1000;
             const VIEW_WIDTH = canvas.width;
             const CIGARETTESPANELOFFSET = -300;
             
@@ -24,12 +26,22 @@
             let baseOffset = 0;
             let startScreenFadingIterator = 0;
             let preGameLoadupIterator = 250;
+
+            var techtreeMap = {};
             
             
             let lastTime = performance.now();
             
+
+            var techtreePanelOffsetX = 0;
+            var techtreePanelOffsetY = 0;
+            
             let lastX = 0;
+            let lastY = 0;
+            
             let velocityX = 0;    
+            let velocityY = 0;    
+
             let startScreenAnimationIterator = 0;
             let draggingTolerance = 5;
             
@@ -43,9 +55,10 @@
             var gameStarted = false;
             var frame = 0;
             
-            var cigarettes = 0;
-            var upgradeCigarettes = 0;
-            var premiumCigarettes = 0;
+                // Set to 0 when Debug is Finished
+            var cigarettes = 1000001;
+            var upgradeCigarettes = 1000;
+            var premiumCigarettes = 1000;
             
             var cigarettesGain = 0;
             
@@ -162,6 +175,48 @@
             camera.x = Math.max(0,Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
 
 
+            async function fetchTechtree(file) 
+            {
+                try 
+                {
+                    const response = await fetch(file);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const data = await response.json();
+                    
+                    console.log(data);
+
+                    data.Upgrades.forEach(element =>
+                        techtreeUpgrades.push(
+                            new techtreeUpgrade(
+                                element.Position[0] + canvas.width / 2, 
+                                element.Position[1] + 100, 
+                                element.Size[0], 
+                                element.Size[1], 
+                                new canvasButtonTexture("", "Green", element.Name),
+                                element.Name,
+                                element.Cost,
+                                element.Condition,
+                                true
+                            ))
+                    );      
+
+                    techtreeUpgrades.forEach(element => 
+                    {
+                        UIManager.add(element);
+                        techtreePannel.addChild(element);
+                    });
+
+                    techtreePannel.setActive(false);
+                } 
+                catch (error) 
+                {
+                    console.error('Failed to load Techtree:', error);
+                }
+            }
+
+
+
+
             function inititialiseButtons()
             {
 
@@ -171,13 +226,6 @@
                 audioButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 60, 50, 50, new canvasButtonTexture("", "Red", "🎵"), true);
                 
                 techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(255,255,255,0.4)"), true);
-                
-                techtreeUpgrades = [
-                    new canvasButton(myGameArea.canvas.width / 2 - 250, techtreePannel.y + 50, 200, 75, new canvasButtonTexture("", "Green", "Upgrade 1")),
-                    new canvasButton(myGameArea.canvas.width / 2,      techtreePannel.y + 50, 200, 75, new canvasButtonTexture("", "Green", "Upgrade 2")),
-                    new canvasButton(myGameArea.canvas.width / 2 - 125, techtreePannel.y + 150, 200, 75, new canvasButtonTexture("", "Green", "Upgrade 3"))
-                ];
-
 
 
 
@@ -203,27 +251,17 @@
                     if(!audio.paused)
                         {
                             audio.pause();
-                            audioButton.buttonTexture.color = "Red";
+                            audioButton.Texture.color = "Red";
                         }
                     else
                         {
                             audio.play();
-                            audioButton.buttonTexture.color = "Green";
+                            audioButton.Texture.color = "Green";
                             audio.volume = 0.2;
                         }
                 }
                     
                     
-                    
-                    
-                    
-                    
-                    
-                techtreeUpgrades.forEach(element => {
-                    techtreePannel.addChild(element);
-                });
-                    
-
                 techtreeButton.setActive(false);
                 techtreePannel.setActive(false);
 
@@ -233,6 +271,7 @@
                 UIManager.add(techtreePannel);
                 UIManager.add(techtreeButton);
 
+                
 
 
                 
@@ -332,47 +371,58 @@
                         {
                             cigarettes -= BatchCost;
                             upgradeCigarettes += 5;
+                            
 
                             switch(i)
                             {
                                 case 0:
                                     cigarettesGain += 0.006 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 1:
                                     cigarettesGain += 0.03 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 2:
                                     cigarettesGain += 0.1 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 3:
                                     cigarettesGain += 0.25 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 4:
                                     cigarettesGain += 0.75 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 5:
                                     cigarettesGain += 1.5 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 6:
                                     cigarettesGain += 2.5 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 7:
                                     cigarettesGain += 4.0 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 8:
                                     cigarettesGain += 4.0 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 9:
                                     cigarettesGain += 10.0 * 5;
+                                    machineLevels[i] += 5;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                             }
@@ -397,42 +447,52 @@
                             {
                                 case 0:
                                     cigarettesGain += 0.006 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 1:
                                     cigarettesGain += 0.03 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 2:
                                     cigarettesGain += 0.1 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 3:
                                     cigarettesGain += 0.25 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 4:
                                     cigarettesGain += 0.75 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 5:
                                     cigarettesGain += 1.5 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 6:
                                     cigarettesGain += 2.5 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 7:
                                     cigarettesGain += 4.0 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 8:
                                     cigarettesGain += 4.0 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 9:
                                     cigarettesGain += 10.0 * 10;
+                                    machineLevels[i] += 10;
                                     machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                             }
@@ -449,14 +509,12 @@
 
 
 
-
-
-
-
             // (Setup Loop)
             function startGame() 
             {
                 myGameArea.start();
+
+                fetchTechtree('Techtree.json');
 
                 inititialiseButtons();
             }
@@ -471,6 +529,7 @@
                 {
                     isDragging = true;
                     lastX = e.clientX;
+                    lastY = e.clientY;
                     clientClick = true;
 
                     if(techtreePannel.active && !techtreePannel.containsPoint(e.clientX, e.clientY)) { // close techtree panel if click is outside it
@@ -486,7 +545,20 @@
                     draggingTolerance = lastX;
                     lastX = e.clientX;
                     velocityX = dx;
-                    camera.x -= dx;
+                    
+                    if(techtreePannel.active && techtreePannel.containsPoint(e.clientX, e.clientY)) 
+                    {
+                        const dy = e.clientY - lastY;
+                        lastY = e.clientY;
+                        velocityY = dy;
+
+                        techtreePanelOffsetX -= dx;        
+                        techtreePanelOffsetY -= dy;
+                    }
+                    else
+                    {
+                        camera.x -= dx;
+                    }
                 });
                 
                 
@@ -580,11 +652,28 @@
                 if (!isDragging) 
                 {
                     velocityX *= 0.92;
-                    camera.x -= velocityX;
+                    velocityY *= 0.92;
+
+                    if(techtreePannel.active)
+                    {
+                        techtreePanelOffsetX -= velocityX;
+                        techtreePanelOffsetY -= velocityY;
+                    }
+                    else
+                    {
+                        camera.x -= velocityX;
+                    }
                 }
 
                 // Clamp
                 camera.x = Math.max(0, Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
+                techtreePanelOffsetX = Math.max(-TECHTREE_WIDTH + VIEW_WIDTH, Math.min(TECHTREE_WIDTH - VIEW_WIDTH, techtreePanelOffsetX));
+                techtreePanelOffsetY = Math.max(0, Math.min(500, techtreePanelOffsetY));
+                techtreeUpgrades.forEach(element => {
+                    element.updateOffset([techtreePanelOffsetX, techtreePanelOffsetY])
+                    element.drawConnections(ctx, techtreeUpgrades);
+                });
+
             }   
             
 
@@ -681,7 +770,7 @@
                     layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
                     layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
                     drawStartButton();
-                    UIManager.draw(true);
+                    UIManager.draw(ctx, true);
                 }
                 else
                 {
@@ -717,7 +806,7 @@
             
             
             // Camera Elements Only
-            UIManager.draw(false);
+            UIManager.draw(ctx, false);
 
             for(let i = 0; i < machineLevels.length; i++)
             {
@@ -785,17 +874,21 @@
             ctx.restore();
 
             // Relative to Screen //
-            UIManager.draw(true);
+            UIManager.draw(ctx, true);
 
-            
+        
+
 
 
             // Debug Info
             ctx.textAlign = "left";
             ctx.textBaseline = "middle"; // center aint a valid value here...lovely javascript
             ctx.font = "20px Arial";
+            ctx.strokeStyle = "Black";
+            ctx.fillStyle = "Black";
             ctx.fillText("Frame: " + frame, 20, 20);
             ctx.fillText(mousePosition, 20, 50);
+            ctx.fillText("TechtreeOffset X: " + techtreePanelOffsetX + ", Y: " + techtreePanelOffsetY, 20, 80);
 
 
 
@@ -814,7 +907,7 @@
         {
             for(let i = 0; i < upgradeButtons.length; i++)
             {
-                if(cigarettes >  Math.ceil(machineBaseCosts[i] * machineCostMultipliers[i]) || upgradeButtons[i].buttonTexture.text == "Free")
+                if(cigarettes >  Math.ceil(machineBaseCosts[i] * machineCostMultipliers[i]) || upgradeButtons[i].Texture.text == "Free")
                 {
                     upgradeButtons[i].setAlpha(0.95);
                 }
@@ -832,11 +925,11 @@
 
                 if(cigarettes > BatchCost)
                 {
-                    batchUpgradeButtons[i].buttonTexture.color = "green";
+                    batchUpgradeButtons[i].Texture.color = "green";
                 }
                 else
                 {
-                    batchUpgradeButtons[i].buttonTexture.color = "grey";
+                    batchUpgradeButtons[i].Texture.color = "grey";
                 }
 
                 for(let j = 5; j < 10; j++)
@@ -846,11 +939,11 @@
 
                 if(cigarettes > BatchCost)
                 {
-                    stackUpgradeButtons[i].buttonTexture.color = "green";
+                    stackUpgradeButtons[i].Texture.color = "green";
                 }
                 else
                 {
-                    stackUpgradeButtons[i].buttonTexture.color = "grey";
+                    stackUpgradeButtons[i].Texture.color = "grey";
                 }
 
             }
@@ -879,7 +972,7 @@
                     }
                 }
 
-            if(!startButton.onClickCheck())
+            if(!startButton.onClickCheck(cursorX, cursorY, clientClick))
             {
 
                 if(startScreenFadingIterator % (FadeTiming * 2) < FadeTiming)
@@ -946,19 +1039,19 @@
                 switch(true)
                 {
                     case val >= 1000000:
-                        upgradeButtons[i].buttonTexture.text = (val / 1000000).toFixed(2).toString() + "Mil";
+                        upgradeButtons[i].Texture.text = (val / 1000000).toFixed(2).toString() + "Mil";
                         break;
                     case val >= 1000:
-                        upgradeButtons[i].buttonTexture.text = (val / 1000).toFixed(2).toString() + "Tsd";
+                        upgradeButtons[i].Texture.text = (val / 1000).toFixed(2).toString() + "Tsd";
                         break;
                     default:
-                        upgradeButtons[i].buttonTexture.text = (val).toString()
+                        upgradeButtons[i].Texture.text = (val).toString()
                         break;
                 }
 
-                if(upgradeButtons[i].buttonTexture.text == 0)
+                if(upgradeButtons[i].Texture.text == 0)
                 {
-                    upgradeButtons[i].buttonTexture.text = "Free";
+                    upgradeButtons[i].Texture.text = "Free";
                 }
             }
         }
@@ -974,279 +1067,3 @@
                 // Update the body's content to display the cursor position
                 mousePosition = "X: " + Math.round(cursorX - 8 + camera.x) + ", Y: " + Math.round(cursorY - 8 + camera.y);
             }
-
-
-
-
-
-
-
-
-
-
-
-
-        function canvasPannelTexture(texture, color = "")
-        {
-            this.texture = texture;
-            this.color = color;
-        }
-
-        function canvasPannel(x,y, sizeX, sizeY, pannelTexture, isAbsolute)
-        {
-            this.x = x;
-            this.y = y;
-            this.sizeX = sizeX;
-            this.sizeY = sizeY;
-            this.blocksInput = true;
-            this.pannelTexture = pannelTexture;
-            this.active = true;
-            this.isAbsolute = isAbsolute;
-            this.components = [];
-
-            this.addChild = function(child)
-            {
-                this.components.push(child);
-            }
-
-            this.setActive = function(setActive)
-            {
-                if(setActive)
-                {
-                    this.active = true;
-                    this.components.forEach(element => {
-                        element.setActive(true);
-                    });
-                }
-                else
-                {
-                    this.active = false;
-                    this.components.forEach(element => {
-                        element.setActive(false);
-                    });
-                }
-            }
-
-            this.hitTest = function(mouseX, mouseY)
-            {
-                if(this.isAbsolute)
-                {
-                    const result =
-                    mouseX >= this.x &&
-                    mouseX <= this.x + this.sizeX &&
-                    mouseY >= this.y &&
-                    mouseY <= this.y + this.sizeY;
-
-                    return result;
-                }
-                else
-                {
-                    const result =
-                    mouseX + camera.x >= this.x &&
-                    mouseX + camera.x <= this.x + this.sizeX &&
-                    mouseY >= this.y &&
-                    mouseY <= this.y + this.sizeY;
-
-                    return result;
-                }
-            }
-            
-            this.onClick = function() 
-            {
-                // empty — but important to block click-through
-            }
-
-
-            this.drawSelf = function()
-            {
-                if(this.active)
-                {
-                    if(this.pannelTexture.texture !== "")
-                    {
-                        ctx.drawImage(this.pannelTexture.texture, this.x, this.y, this.sizeX, this.sizeY)
-                    }
-                    else
-                    {
-                        ctx.fillStyle = this.pannelTexture.color;
-                        ctx.fillRect(this.x, this.y, this.sizeX, this.sizeY);
-                    }
-                    
-                    this.components.forEach(element => {
-                        element.drawSelf();
-                    });
-                }
-            }
-
-            this.containsPoint = function(x, y) {
-                return (
-                    this.active &&
-                    x >= this.x &&
-                    x <= this.x + this.sizeX &&
-                    y >= this.y &&
-                    y <= this.y + this.sizeY
-                );
-            };
-        }
-
-
-        
-        function canvasButtonTexture(texture, color = "", text = "")
-        {
-            this.texture = texture;
-            this.color = color;
-            this.text = text;
-        }
-
-
-        function canvasButton(x,y, sizeX, sizeY, buttonTexture, isAbsolute, enabled = true)
-        {
-            this.x = x;
-            this.y = y;
-            this.sizeX = sizeX;
-            this.sizeY = sizeY;
-            this.buttonTexture = buttonTexture;
-            this.enabled = enabled;
-            this.blocksInput = true;
-            this.isAbsolute = isAbsolute;
-            this.active = true;
-            this.alpha = 1;
-            
-            this.setActive = function(setActive)
-            {
-                if(setActive)
-                {
-                    this.active = true;
-                }
-                else
-                {
-                    this.active = false;
-                }
-            }
-
-            
-            this.setAlpha = function(alpha)
-            {
-                this.alpha = alpha;
-            }
-
-            // Called Automatically (UIManager)
-            this.drawSelf = function()
-            {
-                if(this.active)
-                {
-                if(this.buttonTexture.texture !== "")
-                {
-                    ctx.globalAlpha = this.alpha;
-                    ctx.drawImage(this.buttonTexture.texture, this.x, this.y, this.sizeX, this.sizeY);
-                    ctx.globalAlpha = 1;
-                }
-                else
-                {
-                    ctx.globalAlpha = this.alpha;
-                    ctx.fillStyle = this.buttonTexture.color;
-                    ctx.fillRect(this.x, this.y, this.sizeX, this.sizeY);
-                    ctx.globalAlpha = 1;
-                }
-
-                if (this.buttonTexture.text !== "")
-                {
-                    ctx.globalAlpha = this.alpha;
-                    // Draw text (fitted)
-                    const text = this.buttonTexture.text;
-                    const paddingX = this.sizeX * 0.1; // 10% horizontal padding
-                    const paddingY = this.sizeY * 0.2; // vertical breathing room
-                    
-
-                    if (!text) return;
-                    
-                    const maxTextWidth = this.sizeX - paddingX * 2;
-                    let fontSize = Math.floor(this.sizeY * 0.45); // start large
-                    
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillStyle = "black";
-                    
-                    // Shrink-to-fit loop
-                    do
-                    {
-                        ctx.font = `${fontSize}px Arial`;
-                        fontSize--;
-                    }
-                    while (ctx.measureText(text).width > maxTextWidth && fontSize > 8);
-                    
-                    // Centered draw
-                    ctx.fillText(
-                        text,
-                        this.x + this.sizeX / 2,
-                        this.y + this.sizeY / 2
-                    );
-                    ctx.globalAlpha = 1;
-                }
-                }
-            }
-
-            this.hitTest = function(mouseX, mouseY)
-            {
-                if(this.isAbsolute)
-                {
-                    const result =
-                    mouseX >= this.x &&
-                    mouseX <= this.x + this.sizeX &&
-                    mouseY >= this.y &&
-                    mouseY <= this.y + this.sizeY;
-
-                    return result;
-                }
-                else
-                {
-                    const result =
-                    mouseX + camera.x >= this.x &&
-                    mouseX + camera.x <= this.x + this.sizeX &&
-                    mouseY >= this.y &&
-                    mouseY <= this.y + this.sizeY;
-
-                    return result;
-                }
-            }
-            
-
-            // OBSOLETE (No UIManager Supported use)
-            this.onClickCheck = function()
-            {
-                if(this.active)
-                {
-                    if(cursorX >= this.x && cursorX <= this.x + this.sizeX &&
-                    cursorY >= this.y && cursorY <= this.y + this.sizeY)
-                    {
-                        this.onHover();
-                        return true;
-                    }
-
-                return false;
-                }
-            }
-
-            // OBSOLETE (No UIManager Supported use)
-            this.onHover = function()
-            {
-                console.log("Hovered the Button");
-                if(clientClick)
-                {
-                    this.onClick();
-                }   
-            }
-
-            // OBSOLETE (No UIManager Supported use)
-            this.onClick = function()
-            {
-                console.log("Button has been clicked");
-                this.color = "rgba("+ Math.floor((Math.random() * 255)) + "," + 
-                                      Math.floor((Math.random() * 255)) + "," +
-                                      Math.floor((Math.random() * 255)) + "," +
-                                      Math.floor((Math.random() * 255)) +")";
-                console.log("New Color: " + this.color);
-            }
-        }
-
-
-        

@@ -20,7 +20,7 @@ export const UIManager =
                         const element = this.elements[i];
 
                         
-                        if (element.hitTest(mouseX, mouseY)) 
+                        if (element.hitTest(mouseX, mouseY, camera)) 
                         {
                             console.log("true");
 
@@ -33,7 +33,7 @@ export const UIManager =
                     }
                 },
 
-                draw(absolute) 
+                draw(ctx, absolute) 
                 {
                     if(absolute)
                     {
@@ -41,7 +41,7 @@ export const UIManager =
                         {
                             if(element.isAbsolute)
                             {
-                                element.drawSelf();
+                                element.drawSelf(ctx);
                             }
                         });
                     }
@@ -51,7 +51,7 @@ export const UIManager =
                         {
                             if(!element.isAbsolute)
                             {
-                                element.drawSelf();
+                                element.drawSelf(ctx);
                             }
                         });    
                     }
