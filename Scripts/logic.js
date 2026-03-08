@@ -11,8 +11,10 @@
 
 
             const backgroundDetail = 92;
-            const WORLD_WIDTH = 5000;
+            const WORLD_WIDTH = 10000;
             const TECHTREE_WIDTH = 1000;
+            const MACHINE_START_POSITION = 200 // position of first machine
+            const MACHINE_GAP = 1100; // space between machines
             const VIEW_WIDTH = canvas.width;
             const CIGARETTESPANELOFFSET = -300;
             
@@ -297,9 +299,11 @@
                 // Button Array Loop
                 for(let i = 0; i < 10; i++)
                 {
-                    upgradeButtons[i] = new canvasButton(300 + i * 600, 400, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"), false);
-                    batchUpgradeButtons[i] = new canvasButton(upgradeButtons[i].x, upgradeButtons[i].y - 25, 50, 25, new canvasButtonTexture("", "Grey", "5x"), false);
-                    stackUpgradeButtons[i] = new canvasButton(upgradeButtons[i].x + 50, upgradeButtons[i].y - 25, 50, 25, new canvasButtonTexture("", "Grey", "10x"), false);
+                    const x = machineX(i);
+
+                    upgradeButtons[i] = new canvasButton(x + 50, 400, 100, 100, new canvasButtonTexture(TextureUpgrade, "", "Free"), false);
+                    batchUpgradeButtons[i] = new canvasButton(x + 50, 375, 50, 25, new canvasButtonTexture("", "Grey", "5x"), false);
+                    stackUpgradeButtons[i] = new canvasButton(x + 100, 375, 50, 25, new canvasButtonTexture("", "Grey", "10x"), false);
 
 
                     upgradeButtons[i].onClick = function()
@@ -588,7 +592,7 @@
 
                     if(techtreePannel.active && !techtreePannel.hitTest()) // close techtree panel no matter where the click is
                     {
-                        //techtreePannel.setActive(false);
+                        techtreePannel.setActive(false);
                     }
                 });
 
@@ -837,31 +841,31 @@
 
                     if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 6)
                     {
-                        ctx.drawImage(MachineFrame1, 200 + 600 * i, 512, 256, 512);
+                        ctx.drawImage(MachineFrame1, machineX(i), 512, 256, 512);
                     }
                     else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 5)
                     {
-                        ctx.drawImage(MachineFrame7, 200 + 600 * i, 500, 256, 512);
+                        ctx.drawImage(MachineFrame7, machineX(i), 500, 256, 512);
                     }
                     else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 4)
                     {
-                        ctx.drawImage(MachineFrame6, 200 + 600 * i, 500, 256, 512);
+                        ctx.drawImage(MachineFrame6, machineX(i), 500, 256, 512);
                     }
                     else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 3)
                     {
-                        ctx.drawImage(MachineFrame5, 200 + 600 * i, 500, 256, 512);
+                        ctx.drawImage(MachineFrame5, machineX(i), 500, 256, 512);
                     }
                     else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 2)
                     {
-                        ctx.drawImage(MachineFrame4, 200 + 600 * i, 500, 256, 512);
+                        ctx.drawImage(MachineFrame4, machineX(i), 500, 256, 512);
                     }
                     else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17))
                     {
-                        ctx.drawImage(MachineFrame3, 200 + 600 * i, 500, 256, 512);
+                        ctx.drawImage(MachineFrame3, machineX(i), 500, 256, 512);
                     }
                     else if(frame % machineAnimationSpeed >= 0)
                     {
-                        ctx.drawImage(MachineFrame2, 200 + 600 * i, 500, 256, 512);
+                        ctx.drawImage(MachineFrame2, machineX(i), 500, 256, 512);
                     }
 
 
@@ -870,28 +874,28 @@
 
                     if(frame % (conveyerAnimationSpeed * 10) == 0)
                     {
-                        animatedCigarettes.push([390 + 600 * i, 760 + 256 / 2 - 50, 0]);
+                        animatedCigarettes.push([machineX(i) + 190, 760 + 256 / 2 - 50, 0]);
                     }
 
 
                     if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4) * 3)
                     {
-                        ctx.drawImage(ConveyerFrame4, 390 + 600 * i, 760, 512, 256);
+                        ctx.drawImage(ConveyerFrame4, 390 + 1100 * i, 760, 512, 256);
                     }
                     else if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4) * 2)
                     {
-                        ctx.drawImage(ConveyerFrame3, 390 + 600 * i, 760, 512, 256);
+                        ctx.drawImage(ConveyerFrame3, 390 + 1100 * i, 760, 512, 256);
                     }
                     else if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4))
                     {
-                        ctx.drawImage(ConveyerFrame2, 390 + 600 * i, 760, 512, 256);
+                        ctx.drawImage(ConveyerFrame2, 390 + 1100 * i, 760, 512, 256);
                     }
                     else if(frame % conveyerAnimationSpeed >= 0)
                     {
-                        ctx.drawImage(ConveyerFrame1, 390 + 600 * i, 760, 512, 256);
+                        ctx.drawImage(ConveyerFrame1, 390 + 1100 * i, 760, 512, 256);
                     }
 
-                    ctx.drawImage(BoxFrame1, 735 + 600 * i, 830, 256, 256);
+                    ctx.drawImage(BoxFrame1, machineX(i) + 535, 830, 256, 256);
                 }
             }
 
@@ -1145,4 +1149,8 @@ function applyUpgrade(upgrade) {
                 break;
         }
     });
+}
+
+function machineX(i) {
+    return MACHINE_START_POSITION + MACHINE_GAP * i;
 }
