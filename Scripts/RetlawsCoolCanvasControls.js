@@ -350,3 +350,138 @@ export class techtreeUpgrade extends canvasElement
                 }
             }
         }
+
+
+export class particleEmitter extends canvasElement
+{
+    constructor(x, y, particleSize, particleTexture/* Use CanvasTexture Object */, PSPU,  minVelocity, maxVelocity, particleLifetime, emitterlifetime, gravity = false, drag = 0, isActive = true, isAbsolute = true, offset = [0,0])
+    {
+        super(x,y,particleSize,particleSize,particleTexture,isAbsolute,isActive,offset);
+
+        this.PSPU = PSPU; // Particles Spawned Per Update
+        this.minVelocity = minVelocity;
+        this.maxVelocity = maxVelocity;
+        this.emitterlifetime = emitterlifetime;
+        this.particleLifetime = particleLifetime;
+        this.gravity = gravity;
+        this.drag = drag;
+
+
+        this.particleChildren = [];
+    }
+
+    spawnParticle()
+    {
+        // Decimal
+        if(this.PSPU % 1 !== 0)
+        {
+            for(let i = 0; i < Math.floor(this.PSPU); i++)
+            {
+                this.particleChildren.push(
+                    new particle(
+                        this.x, 
+                        this.y, 
+                        this.sizeX, 
+                        this.Texture, 
+                        [(Math.random() - 0.5) * 2 * Math.max(this.minVelocity, Math.random() * this.maxVelocity),(Math.random() - 0.5) * 2 * Math.max(this.minVelocity, Math.random() * this.maxVelocity)], 
+                        this.particleLifetime, 
+                        this.alpha, 
+                        this.isAbsolute, 
+                        this.isActive, 
+                        this.offset
+                    )
+                );
+            }
+
+            if(Math.round(Math.random() * 100) < (this.PSPU % 1) * 100)
+            {
+                this.particleChildren.push(
+                    new particle(
+                        this.x, 
+                        this.y, 
+                        this.sizeX, 
+                        this.Texture, 
+                        [(Math.random() - 0.5) * 2 * Math.max(this.minVelocity, Math.random() * this.maxVelocity),(Math.random() - 0.5) * 2 * Math.max(this.minVelocity, Math.random() * this.maxVelocity)], 
+                        this.particleLifetime, 
+                        this.alpha, 
+                        this.isAbsolute, 
+                        this.isActive, 
+                        this.offset
+                    )
+                );
+            }
+        }
+        else
+        {
+            for(let i = 0; i < Math.floor(this.PSPU); i++)
+            {
+                this.particleChildren.push(
+                    new particle(
+                        this.x, 
+                        this.y, 
+                        this.sizeX, 
+                        this.Texture, 
+                        [(Math.random() - 0.5) * 2 * Math.max(this.minVelocity, Math.random() * this.maxVelocity),(Math.random() - 0.5) * 2 * Math.max(this.minVelocity, Math.random() * this.maxVelocity)], 
+                        this.particleLifetime, 
+                        this.alpha, 
+                        this.isAbsolute, 
+                        this.isActive, 
+                        this.offset
+                    )
+                );
+            }
+        }
+    }
+
+    drawSelf(ctx)
+    {
+        this.emitterlifetime--;
+
+        if(this.active)
+        {
+            for(let i = this.particleChildren.length - 1; i >= 0; i--)
+                {
+                    const p = this.particleChildren[i];
+                    
+                    p.updateFrame(this.gravity ? 0.02 : 0, this.drag);
+                    
+                    if(p.lifetime <= 0)
+                        this.particleChildren.splice(i,1);
+                    else
+                        p.drawSelf(ctx);
+                }
+            }
+    }
+}
+
+
+
+export class particle extends canvasElement
+{
+    constructor(x,y, particleSize, Texture, velocity, lifetime, alpha, isAbsolute, isActive = true, offset = [0,0])
+    {
+        super(x,y,particleSize,particleSize,Texture,isAbsolute,isActive,offset);
+
+        this.lifetime = lifetime;
+        this.alpha = alpha;
+
+        const angle = Math.random() * Math.PI * 2;
+
+        this.vx = velocity[0];
+        this.vy = velocity[1];
+    }
+
+    updateFrame(gravity, drag)
+    {
+        this.vy += gravity;
+
+        this.vx *= (1 - drag);
+        this.vy *= (1 - drag);
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        this.lifetime--;
+    }
+}
+

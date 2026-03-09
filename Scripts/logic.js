@@ -1,5 +1,5 @@
             import { UIManager, camera} from "./dom.js";
-            import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade } from "./RetlawsCoolCanvasControls.js";
+            import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, particleEmitter, particle} from "./RetlawsCoolCanvasControls.js";
 
 
             document.addEventListener("mousemove", updateCursorPosition);
@@ -52,6 +52,7 @@
             let uiBlockingInput = false;
 
             var animatedCigarettes = [];
+            var currentActiveParticleEmitter = [];
             
             // Game Variables
             var gameStarted = false;
@@ -309,8 +310,29 @@
                     upgradeButtons[i].onClick = function()
                     {
                         velocityX = 0; // stop sliding
+
                         if(cigarettes >= machineBaseCosts[i] * machineCostMultipliers[i])
                         {
+                            // Super Cool Particle Test
+                            currentActiveParticleEmitter.push(
+                                new particleEmitter(
+                                    upgradeButtons[i].x + upgradeButtons[i].sizeX / 2,      // XPOS
+                                    upgradeButtons[i].y + upgradeButtons[i].sizeY / 2,      // YPOS
+                                    2,                                                      // SIZE
+                                    new canvasPannelTexture("", "Yellow"),                     // Texture/Color
+                                    4,                                                      // PSPU (Particles Spawned Per Frame)
+                                    1,                                                      // Min Velocity
+                                    7,                                                     // Max Velocity
+                                    12,                                                    // LifeTime Particle
+                                    10,                                                     // LifeTime Emitter
+                                    true,                                                   // Gravity = false
+                                    0                                                       // Pull = 0
+                                )
+                            );
+
+                            UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+
+
                             cigarettes -= machineBaseCosts[i] * machineCostMultipliers[i];
                             upgradeCigarettes += 1;
 
@@ -385,6 +407,8 @@
                     {
                         let BatchCost = 0;
 
+                        
+
                         for(let j = 0; j < 5; j++)
                         {
                             BatchCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
@@ -392,8 +416,30 @@
 
                         if(cigarettes > BatchCost)
                         {
+                            // Super Cool Particle Test
+                            currentActiveParticleEmitter.push(
+                                new particleEmitter(
+                                    batchUpgradeButtons[i].x + batchUpgradeButtons[i].sizeX / 2,      // XPOS
+                                    batchUpgradeButtons[i].y + batchUpgradeButtons[i].sizeY / 2,      // YPOS
+                                    2,                                                      // SIZE
+                                    new canvasPannelTexture("", "Lime"),                     // Texture/Color
+                                    8,                                                      // PSPU (Particles Spawned Per Frame)
+                                    1,                                                      // Min Velocity
+                                    10,                                                     // Max Velocity
+                                    10,                                                    // LifeTime Particle
+                                    12,                                                     // LifeTime Emitter
+                                    true,                                                   // Gravity = false
+                                    0                                                       // Pull = 0
+                                )
+                            );
+
+                            UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+
+
+
                             cigarettes -= BatchCost;
                             upgradeCigarettes += 5;
+                            
                             
 
                             switch(i)
@@ -454,6 +500,26 @@
 
                     stackUpgradeButtons[i].onClick = function()
                     {
+                        // Super Cool Particle Test
+                            currentActiveParticleEmitter.push(
+                                new particleEmitter(
+                                    stackUpgradeButtons[i].x + stackUpgradeButtons[i].sizeX / 2,      // XPOS
+                                    stackUpgradeButtons[i].y + stackUpgradeButtons[i].sizeY / 2,      // YPOS
+                                    2,                                                      // SIZE
+                                    new canvasPannelTexture("", "Cyan"),                     // Texture/Color
+                                    15,                                                      // PSPU (Particles Spawned Per Frame)
+                                    1,                                                      // Min Velocity
+                                    17,                                                     // Max Velocity
+                                    10,                                                    // LifeTime Particle
+                                    10,                                                     // LifeTime Emitter
+                                    true,                                                   // Gravity = false
+                                    0                                                       // Pull = 0
+                                )
+                            );
+
+                            UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+
+
                         let StackCost = 0;
 
                         for(let j = 0; j < 10; j++)
@@ -919,6 +985,19 @@
 
                 
 
+            
+            for(let i = 0; i < currentActiveParticleEmitter.length; i++)
+            {
+                if(currentActiveParticleEmitter[i].emitterlifetime > 0)
+                {
+                    currentActiveParticleEmitter[i].spawnParticle();
+                }
+                else if(currentActiveParticleEmitter[i].particleChildren.length == 0)
+                {
+                    currentActiveParticleEmitter.splice(i, 1);
+                }
+            }
+
 
 
 
@@ -947,6 +1026,18 @@
             ctx.fillText("Frame: " + frame, 20, 20);
             ctx.fillText(mousePosition, 20, 50);
             ctx.fillText("TechtreeOffset X: " + techtreePanelOffsetX + ", Y: " + techtreePanelOffsetY, 20, 80);
+            ctx.fillText("Current Active Emitter: " + currentActiveParticleEmitter.length, 20, 110);
+
+            let particleAmount = 0;
+            currentActiveParticleEmitter.forEach(element => {
+                element.particleChildren.forEach(e => {
+                    particleAmount++;
+                });
+            });
+
+            ctx.fillText("Particle Amount: " + particleAmount, 20, 140);
+
+
 
 
 
