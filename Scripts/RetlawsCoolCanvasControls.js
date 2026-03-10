@@ -229,6 +229,20 @@ export class canvasPannel extends canvasElement
                     y <= this.y + this.sizeY
                 );
             };
+
+            // panel moves the techtree buttons with it
+            drawSelf(ctx)
+            {
+                // draw the panel
+                super.drawSelf(ctx);
+
+                if(!this.active) return;
+
+                // draw children
+                this.components.forEach(element => {
+                    element.drawSelf(ctx);
+                });
+            }
         }
 
 
@@ -246,11 +260,6 @@ export class techtreeUpgrade extends canvasElement
                 this.isBought = false;
             }
 
-            updateOffset(offset)
-            {
-                this.offset = offset;
-            }
-
             
             drawConnections(ctx, objectArray)
             {
@@ -265,8 +274,13 @@ export class techtreeUpgrade extends canvasElement
                                     if(this.condition[i] == objectArray[j].name)
                                     {
 
-                                        const differentialX = this.x + this.sizeX / 2 - (objectArray[j].x + objectArray[j].sizeX / 2);
-                                        const differentialY = this.y - (objectArray[j].y + objectArray[j].sizeY);
+                                        const startX = objectArray[j].x + objectArray[j].sizeX / 2;
+                                        const startY = objectArray[j].y + objectArray[j].sizeY;
+
+                                        const endX = this.x + this.sizeX / 2;
+                                        const endY = this.y;
+
+                                        const midY = startY + (endY - startY) / 2;
 
                                         ctx.beginPath();
                                         ctx.lineWidth = 8;
@@ -280,10 +294,10 @@ export class techtreeUpgrade extends canvasElement
                                             ctx.strokeStyle = "Black";
                                         }
                                             
-                                        ctx.moveTo(objectArray[j].x + objectArray[j].sizeX / 2 - this.offset[0], objectArray[j].y + objectArray[j].sizeY - this.offset[1]);
-                                        ctx.lineTo(objectArray[j].x + objectArray[j].sizeX / 2 - this.offset[0], objectArray[j].y + objectArray[j].sizeY + differentialY / 2 - this.offset[1]);
-                                        ctx.lineTo(this.x + this.sizeX / 2 - this.offset[0], objectArray[j].y + objectArray[j].sizeY + differentialY / 2 - this.offset[1]);
-                                        ctx.lineTo(this.x + this.sizeX / 2 - this.offset[0], this.y - this.offset[1]);
+                                        ctx.moveTo(startX, startY);
+                                        ctx.lineTo(startX, midY);
+                                        ctx.lineTo(endX, midY);
+                                        ctx.lineTo(endX, endY);
                                         ctx.stroke();
                                 }
                             }
@@ -301,14 +315,14 @@ export class techtreeUpgrade extends canvasElement
                     if(this.Texture.texture !== "")
                     {
                         ctx.globalAlpha = this.alpha;
-                        ctx.drawImage(this.Texture.texture, this.x - this.offset[0], this.y - this.offset[1], this.sizeX, this.sizeY);
+                        ctx.drawImage(this.Texture.texture, this.x, this.y, this.sizeX, this.sizeY);
                         ctx.globalAlpha = 1;
                     }
                     else
                     {
                         ctx.globalAlpha = this.alpha;
                         ctx.fillStyle = this.Texture.color;
-                        ctx.fillRect(this.x - this.offset[0], this.y - this.offset[1], this.sizeX, this.sizeY);
+                        ctx.fillRect(this.x, this.y, this.sizeX, this.sizeY);
                         ctx.globalAlpha = 1;
                     }
                 
@@ -343,8 +357,8 @@ export class techtreeUpgrade extends canvasElement
                     // Centered draw
                     ctx.fillText(
                         text,
-                        this.x + this.sizeX / 2 - this.offset[0],
-                        this.y + this.sizeY / 2 - this.offset[1]
+                        this.x + this.sizeX / 2,
+                        this.y + this.sizeY / 2 
                     );
                 }
                 }

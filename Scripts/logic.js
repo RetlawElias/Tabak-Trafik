@@ -51,6 +51,15 @@
             let clientClick = false;
             let uiBlockingInput = false;
 
+            let resizingPanel = false;
+            const resizeHandleSize = 35;
+
+            let draggingPanel = false;
+            let panelDragOffsetX = 0;
+            let panelDragOffsetY = 0;
+
+            let draggingWorld = false;
+
             var animatedCigarettes = [];
             var currentActiveParticleEmitter = [];
             
@@ -85,7 +94,7 @@
             var techtreeButton;
             var startButton;
             var audioButton;
-            
+            var closeButton;
             
             var mousePosition;
             var cursorX;
@@ -197,16 +206,33 @@
                     for(let i = 0; i < data.Upgrades.length; i++)
                     {
                         let obj = new techtreeUpgrade(
-                                data.Upgrades[i].Position[0] + canvas.width / 2, 
-                                data.Upgrades[i].Position[1] + 100, 
-                                data.Upgrades[i].Size[0], 
-                                data.Upgrades[i].Size[1], 
-                                new canvasButtonTexture("", "Green", data.Upgrades[i].Name),
-                                data.Upgrades[i].Name,
-                                data.Upgrades[i].Cost,
-                                data.Upgrades[i].Condition,
-                                true
-                            );
+                            data.Upgrades[i].Position[0],
+                            data.Upgrades[i].Position[1],
+                            data.Upgrades[i].Size[0], 
+                            data.Upgrades[i].Size[1], 
+                            new canvasButtonTexture("", "Green", data.Upgrades[i].Name),
+                            data.Upgrades[i].Name,
+                            data.Upgrades[i].Cost,
+                            data.Upgrades[i].Condition,
+                            true
+                        );
+
+                        // Store position relative to panel top-left
+                        obj.localX = data.Upgrades[i].Position[0];
+                        obj.localY = data.Upgrades[i].Position[1];
+
+                        // Function to update absolute position when panel moves
+                        obj.updateOffset = function(panelX, panelY, panelW, panelH) {
+                            const centerX = panelX + panelW / 2;
+                            const centerY = panelY + panelH / 2;
+
+                            this.x = centerX + this.localX - this.sizeX / 2;
+                            this.y = centerY + this.localY - this.sizeY / 2;
+                        };
+
+                        // Set initial position
+                        obj.updateOffset(techtreePannel.x, techtreePannel.y);
+
 
                         obj.onClick = function()
                         {
@@ -219,12 +245,10 @@
                         }
 
                         techtreeUpgrades.push(obj);
-                        
                     }  
 
                     techtreeUpgrades.forEach(element => 
                     {
-                        UIManager.add(element);
                         techtreePannel.addChild(element);
                     });
 
@@ -247,17 +271,26 @@
                 startButton = new canvasButton(myGameArea.canvas.width / 2 - 250, 100, 500, 250, new canvasButtonTexture(TextureButton), true);
                 audioButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 60, 50, 50, new canvasButtonTexture("", "Red", "🎵"), true);
                 
-                techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(255,255,255,0.4)"), true);
+                techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(240,240,240,0.85)"), true);
 
-
-
+                closeButton = new canvasButton(techtreePannel.x + techtreePannel.sizeX - 35, techtreePannel.y + 5, 30, 30, new canvasButtonTexture("", "Red", "X"), true);
+                techtreePannel.addChild(closeButton);
+                
                 //OnClick Functions
-                techtreeButton.onClick = function()
-                {
-                    techtreePannel.setActive(!techtreePannel.active);
-                }
-                
-                
+                techtreeButton.onClick = function() {
+                    techtreePannel.setActive(true);
+                };
+
+                closeButton.onClick = function() {
+                    techtreePannel.active = false;
+
+                    draggingWorld = false;
+                    draggingPanel = false;
+                    resizingPanel = false;
+                };
+                                
+
+            
                 startButton.onClick = function()
                 {
                     gameStarted = true;
@@ -599,13 +632,17 @@
 
 
             // (Setup Loop)
-            function startGame() 
+            async function startGame() 
             {
                 myGameArea.start();
 
-                fetchTechtree('Techtree.json');
-
                 inititialiseButtons();
+
+                await fetchTechtree('Techtree.json');
+
+                techtreeUpgrades.forEach(element => {
+                    techtreePannel.addChild(element);
+                });
             }
 
 
@@ -614,52 +651,76 @@
             function addListenersToCanvas(canvas)
             {
 
-                canvas.addEventListener("pointerdown", e => 
-                {
-                    isDragging = true;
-                    lastX = e.clientX;
-                    lastY = e.clientY;
-                    clientClick = true;
+                canvas.addEventListener("pointerdown", e => {
 
-                    if(techtreePannel.active && !techtreePannel.containsPoint(e.clientX, e.clientY)) { // close techtree panel if click is outside it
-                        techtreePannel.setActive(false);
+                const mx = e.clientX;
+                const my = e.clientY;
+
+                if(techtreePannel.active)
+                {
+                    // resize
+                    if(overResizeHandle(mx,my))
+                    {
+                        resizingPanel = true;
+                        return;
+                    }
+
+                    // drag panel
+                    if(techtreePannel.containsPoint(mx,my))
+                    {
+                        draggingPanel = true;
+                        panelDragOffsetX = mx - techtreePannel.x;
+                        panelDragOffsetY = my - techtreePannel.y;
+                        return;
+                    }
+
+                    // buttons inside panel
+                    if(UIManager.handleClick(mx,my))
+                        return;
+                }
+
+                // world input
+                draggingWorld = true;
+                lastX = e.clientX;
+                clientClick = true;
+            });
+                
+                canvas.addEventListener("pointermove", e =>
+                {
+                    const mx = e.clientX;
+                    const my = e.clientY;
+
+                    if(draggingPanel)
+                    {
+                        techtreePannel.x = mx - panelDragOffsetX;
+                        techtreePannel.y = my - panelDragOffsetY;
+
+                        techtreeUpgrades.forEach(el => el.updateOffset(techtreePannel.x, techtreePannel.y, techtreePannel.sizeX, techtreePannel.sizeY));
+
+                        return;
+                    }
+
+                    if(resizingPanel)
+                    {
+                        techtreePannel.sizeX = mx - techtreePannel.x;
+                        techtreePannel.sizeY = my - techtreePannel.y;
+                        return;
+                    }
+
+                    // World drag
+                    if(!techtreePannel.active && draggingWorld)
+                    {
+                        camera.x -= (mx - lastX);
+                        lastX = mx;
                     }
                 });
                 
-                canvas.addEventListener("pointermove", e => 
-                {
-                    if (!isDragging) return;
-                    
-                    const dx = e.clientX - lastX;
-                    draggingTolerance = lastX;
-                    lastX = e.clientX;
-                    velocityX = dx;
-                    
-                    if(techtreePannel.active && techtreePannel.containsPoint(e.clientX, e.clientY)) 
-                    {
-                        const dy = e.clientY - lastY;
-                        lastY = e.clientY;
-                        velocityY = dy;
 
-                        techtreePanelOffsetX -= dx;        
-                        techtreePanelOffsetY -= dy;
-                    }
-                    else
-                    {
-                        camera.x -= dx;
-                    }
-                });
-                
-                
                 canvas.addEventListener("pointerup", e => 
                 {
-                    clientClick = true;
-                    isDragging = false;
-
-                    if(techtreePannel.active && !techtreePannel.hitTest()) // close techtree panel no matter where the click is
-                    {
-                        techtreePannel.setActive(false);
-                    }
+                    draggingPanel = false;
+                    resizingPanel = false;
+                    draggingWorld = false;
                 });
 
 
@@ -668,7 +729,7 @@
                     const rect = canvas.getBoundingClientRect();
                     const mouseX = e.clientX - rect.left;
                     const mouseY = e.clientY - rect.top;
-                    
+
                     UIManager.handleClick(mouseX, mouseY);
                 });
             }
@@ -743,14 +804,9 @@
                     velocityX *= 0.92;
                     velocityY *= 0.92;
 
-                    if(techtreePannel.active)
+                    if(!techtreePannel.active)
                     {
-                        techtreePanelOffsetX -= velocityX;
-                        techtreePanelOffsetY -= velocityY;
-                    }
-                    else
-                    {
-                        camera.x -= velocityX;
+                        velocityX = 0;
                     }
                 }
 
@@ -758,9 +814,9 @@
                 camera.x = Math.max(0, Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
                 techtreePanelOffsetX = Math.max(-TECHTREE_WIDTH + VIEW_WIDTH, Math.min(TECHTREE_WIDTH - VIEW_WIDTH, techtreePanelOffsetX));
                 techtreePanelOffsetY = Math.max(0, Math.min(500, techtreePanelOffsetY));
-                techtreeUpgrades.forEach(element => {
+                /* techtreeUpgrades.forEach(element => {
                     element.updateOffset([techtreePanelOffsetX, techtreePanelOffsetY])
-                });
+                }); panel handles the positioning */
 
             }   
             
@@ -822,15 +878,17 @@
 
             if(techtreePannel.active && techtreePannel.containsPoint(cursorX, cursorY))
             {
-                uiBlockingInput = false; // if mouse is over the panel, then block input to the world (buttons will still work)
+                uiBlockingInput = true; // if mouse is over the panel, then block input to the world (buttons will still work)
             } 
             else
             {
-                uiBlockingInput = true;
+                uiBlockingInput = false;
             }
   
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            closeButton.x = techtreePannel.x + techtreePannel.sizeX - 35;
+            closeButton.y = techtreePannel.y + 5;
 
             // Intro Sequence
             if(!gameStarted)
@@ -844,7 +902,7 @@
                     direction *= -1;
                 }
                 
-                
+
                 
                 if(preGameLoadupIterator > 0 && preGameLoadupIterator < 150)
                 {
@@ -891,7 +949,7 @@
             // Relative to Camera //
             drawBackground(ctx);
             drawButtonsAndLabels();
-            
+
             
             // Camera Elements Only
             UIManager.draw(ctx, false);
@@ -1039,14 +1097,29 @@
 
 
 
-
-
             drawCurrencyPanel();
             
-            updateUpgradeButtons();
+            if (techtreePannel.active)
+            {
+                updateUpgradeButtons();
 
+                techtreeUpgrades.forEach(el =>
+                    el.updateOffset(
+                        techtreePannel.x,
+                        techtreePannel.y,
+                        techtreePannel.sizeX,
+                        techtreePannel.sizeY
+                    ),
 
-            
+                    ctx.fillRect(
+                        techtreePannel.x + techtreePannel.sizeX - 20, 
+                        techtreePannel.y + techtreePannel.sizeY - 20,
+                        20,
+                        20
+                    )
+                );
+            }
+
             
             clientClick = false;
         }
@@ -1219,29 +1292,36 @@
 
 
 
-function applyUpgrade(upgrade) {
+        function applyUpgrade(upgrade) {
 
-    upgrade.forEach(effect => {
+            upgrade.forEach(effect => {
 
-        const target = effect.target;
+                const target = effect.target;
 
-        switch (effect.operation) {
+                switch (effect.operation) {
 
-            case "add":
-                gameState[target] += effect.value;
-                break;
+                    case "add":
+                        gameState[target] += effect.value;
+                        break;
 
-            case "multiply":
-                gameState[target] *= effect.value;
-                break;
+                    case "multiply":
+                        gameState[target] *= effect.value;
+                        break;
 
-            case "set":
-                gameState[target] = effect.value;
-                break;
+                    case "set":
+                        gameState[target] = effect.value;
+                        break;
+                }
+            });
         }
-    });
-}
 
-function machineX(i) {
-    return MACHINE_START_POSITION + MACHINE_GAP * i;
-}
+        function machineX(i) {
+            return MACHINE_START_POSITION + MACHINE_GAP * i;
+        }
+
+        function overResizeHandle(mx, my) {
+            return (
+                mx > techtreePannel.x + techtreePannel.sizeX - resizeHandleSize &&
+                my > techtreePannel.y + techtreePannel.sizeY - resizeHandleSize
+            )
+        }

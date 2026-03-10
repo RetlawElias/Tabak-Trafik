@@ -12,25 +12,36 @@ export const UIManager =
 
                 handleClick(mouseX, mouseY) 
                 {
-                    console.log("Click at: " + mouseX + ", " + mouseY);
-                    
-                    // Iterate in reverse draw order (topmost first)
                     for (let i = this.elements.length - 1; i >= 0; i--) 
                     {
                         const element = this.elements[i];
 
-                        
-                        if (element.hitTest(mouseX, mouseY, camera)) 
-                        {
-                            console.log("true");
+                        if (!element.active) continue;
 
-                            if (element.blocksInput) 
+                        // Check panel children first (topmost)
+                        if (element.components) 
+                        {
+                            for (let j = element.components.length - 1; j >= 0; j--) 
                             {
-                                element.onClick();
-                                return;
+                                const child = element.components[j];
+
+                                if (child.active && child.hitTest(mouseX, mouseY, camera)) 
+                                {
+                                    child.onClick();
+                                    return true;
+                                }
                             }
                         }
+
+                        // Check the element itself
+                        if (element.hitTest(mouseX, mouseY, camera)) 
+                        {
+                            element.onClick();
+                            return true;
+                        }
                     }
+
+                    return false;
                 },
 
                 draw(ctx, absolute) 
