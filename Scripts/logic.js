@@ -19,7 +19,7 @@
             const CIGARETTESPANELOFFSET = -300;
             
             
-            var audio = new Audio('Audio/Monotone_Labor.mp3');
+            var audio = new Audio('Audio/Westward.wav');
             
             
             
@@ -349,7 +349,7 @@
                             // Super Cool Particle Test
                             currentActiveParticleEmitter.push(
                                 new particleEmitter(
-                                    upgradeButtons[i].x + upgradeButtons[i].sizeX / 2,      // XPOS
+                                    upgradeButtons[i].x + upgradeButtons[i].sizeX / 2 - camera.x,      // XPOS
                                     upgradeButtons[i].y + upgradeButtons[i].sizeY / 2,      // YPOS
                                     2,                                                      // SIZE
                                     new canvasPannelTexture("", "Yellow"),                     // Texture/Color
@@ -372,7 +372,7 @@
                             switch(i)
                             {
                                 case 0:
-                                    if(cigarettesGain == 0)
+                                    if(machineLevels[i] == 0)
                                     {
                                         cigarettesGain += 0.01;
                                         machineCostMultipliers[i] += 1;
@@ -452,7 +452,7 @@
                             // Super Cool Particle Test
                             currentActiveParticleEmitter.push(
                                 new particleEmitter(
-                                    batchUpgradeButtons[i].x + batchUpgradeButtons[i].sizeX / 2,      // XPOS
+                                    batchUpgradeButtons[i].x + batchUpgradeButtons[i].sizeX / 2 - camera.x,      // XPOS
                                     batchUpgradeButtons[i].y + batchUpgradeButtons[i].sizeY / 2,      // YPOS
                                     2,                                                      // SIZE
                                     new canvasPannelTexture("", "Lime"),                     // Texture/Color
@@ -533,10 +533,21 @@
 
                     stackUpgradeButtons[i].onClick = function()
                     {
-                        // Super Cool Particle Test
+                    
+                        let StackCost = 0;
+
+                        for(let j = 0; j < 10; j++)
+                        {
+                            StackCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
+                        }
+
+                        if(cigarettes > StackCost)
+                        {
+
+                            // Super Cool Particle Test
                             currentActiveParticleEmitter.push(
                                 new particleEmitter(
-                                    stackUpgradeButtons[i].x + stackUpgradeButtons[i].sizeX / 2,      // XPOS
+                                    stackUpgradeButtons[i].x + stackUpgradeButtons[i].sizeX / 2 - camera.x,      // XPOS
                                     stackUpgradeButtons[i].y + stackUpgradeButtons[i].sizeY / 2,      // YPOS
                                     2,                                                      // SIZE
                                     new canvasPannelTexture("", "Cyan"),                     // Texture/Color
@@ -553,15 +564,6 @@
                             UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
 
-                        let StackCost = 0;
-
-                        for(let j = 0; j < 10; j++)
-                        {
-                            StackCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
-                        }
-
-                        if(cigarettes > StackCost)
-                        {
                             cigarettes -= StackCost;
                             upgradeCigarettes += 10;
 
@@ -1099,9 +1101,10 @@
 
             drawCurrencyPanel();
             
+            updateUpgradeButtons();
+            
             if (techtreePannel.active)
             {
-                updateUpgradeButtons();
 
                 techtreeUpgrades.forEach(el =>
                     el.updateOffset(

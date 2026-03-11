@@ -29,8 +29,9 @@ export class canvasElement
         this.blocksInput = true;
         this.isAbsolute = isAbsolute;
         this.active = isActive;
-        this.alpha = 1;
         this.offset = offset;
+        this.alpha = 1;
+        this.zPriority = 0;
     }
 
     setActive(setActive)
