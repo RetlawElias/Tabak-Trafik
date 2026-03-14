@@ -359,7 +359,9 @@
                                     12,                                                    // LifeTime Particle
                                     10,                                                     // LifeTime Emitter
                                     true,                                                   // Gravity = false
-                                    0                                                       // Pull = 0
+                                    0,                                                       // Pull = 0
+                                    true,                                                    // Active = true
+                                    false                                                   // Absoulte = false
                                 )
                             );
 
@@ -462,7 +464,9 @@
                                     10,                                                    // LifeTime Particle
                                     12,                                                     // LifeTime Emitter
                                     true,                                                   // Gravity = false
-                                    0                                                       // Pull = 0
+                                    0,                                                       // Pull = 0
+                                    true,                                                    // Active = true
+                                    false                                                   // Absoulte = false
                                 )
                             );
 
@@ -546,7 +550,9 @@
                                     10,                                                    // LifeTime Particle
                                     10,                                                     // LifeTime Emitter
                                     true,                                                   // Gravity = false
-                                    0                                                       // Pull = 0
+                                    0,                                                       // Pull = 0
+                                    true,                                                    // Active = true
+                                    false                                                   // Absolute = false
                                 )
                             );
 
@@ -1044,7 +1050,7 @@
                 
 
             
-            for(let i = 0; i < currentActiveParticleEmitter.length; i++)
+            for(let i = currentActiveParticleEmitter.length - 1; i >= 0; i--) // so particles appear correctly
             {
                 if(currentActiveParticleEmitter[i].emitterlifetime > 0)
                 {
