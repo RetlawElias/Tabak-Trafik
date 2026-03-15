@@ -237,14 +237,59 @@
 
                         obj.onClick = function()
                         {
-                            if(upgradeCigarettes >= obj.cost)
+                            let isBuyable = true;
+                            obj.condition.forEach(element => {
+                                techtreeUpgrades.forEach(upgrad => {
+                                    if(element == upgrad.name && upgrad.isBought)
+                                    {
+                                        console.log("Condition ist nicht gekauft!");
+                                        isBuyable = false;
+                                    }
+                                    else
+                                    {
+                                        console.log("Condition ist gekauft!");
+                                    }
+                                    }
+                                );
+                            });
+
+                            if(upgradeCigarettes >= obj.cost && !obj.isBought && isBuyable)
                             {
                                 upgradeCigarettes -= obj.cost;
                                 applyUpgrade(data.Upgrades[i].Effects);
+                                obj.isBought = true;
                             }
                                 
                         }
 
+                        obj.hitTest = function(mouseX, mouseY, camera = null)
+                        {
+                            if(this.isAbsolute)
+                            {
+                                const result =
+                                mouseX >= obj.x + techtreePanelOffsetX &&
+                                mouseX <= obj.x + obj.sizeX  + techtreePanelOffsetX &&
+                                mouseY >= obj.y + techtreePanelOffsetY &&
+                                mouseY <= obj.y + obj.sizeY + techtreePanelOffsetY;
+                                if(result)
+                                {
+                                    console.log("Clicked an Upgrade!");
+                                }
+                                return result;
+                            }
+                            else
+                            {
+                                const result =
+                                mouseX + camera.x >= obj.x &&
+                                mouseX + camera.x <= obj.x + obj.sizeX &&
+                                mouseY >= obj.y &&
+                                mouseY <= obj.y + obj.sizeY;
+                                console.log("Clicked an Upgrade!");
+                                return result;
+                            }
+                        }
+                    
+                    
                         techtreeUpgrades.push(obj);
                     }  
 
@@ -362,7 +407,7 @@
                                     true,                                                   // Gravity = false
                                     0,                                                       // Pull = 0
                                     true,                                                    // Active = true
-                                    false                                                   // Absoulte = false
+                                    true                                                   // Absoulte = false
                                 )
                             );
 
@@ -467,7 +512,7 @@
                                     true,                                                   // Gravity = false
                                     0,                                                       // Pull = 0
                                     true,                                                    // Active = true
-                                    false                                                   // Absoulte = false
+                                    true                                                   // Absoulte = false
                                 )
                             );
 
@@ -564,7 +609,7 @@
                                     true,                                                   // Gravity = false
                                     0,                                                       // Pull = 0
                                     true,                                                    // Active = true
-                                    false                                                   // Absolute = false
+                                    true                                                   // Absolute = false
                                 )
                             );
 

@@ -327,7 +327,7 @@ export class techtreeUpgrade extends canvasElement
                 }
             }
 
-            
+
             drawSelf(ctx)
             {
                 
