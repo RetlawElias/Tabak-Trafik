@@ -240,14 +240,17 @@
                             let isBuyable = true;
                             obj.condition.forEach(element => {
                                 techtreeUpgrades.forEach(upgrad => {
-                                    if(element == upgrad.name && upgrad.isBought)
+                                    if(element == upgrad.name)
                                     {
-                                        console.log("Condition ist nicht gekauft!");
-                                        isBuyable = false;
-                                    }
-                                    else
-                                    {
-                                        console.log("Condition ist gekauft!");
+                                        if(!upgrad.isBought)
+                                        {
+                                            console.log("Condition ist nicht gekauft!");
+                                            isBuyable = false;
+                                        }
+                                        else
+                                        {
+                                            console.log("Condition ist gekauft!");
+                                        }
                                     }
                                     }
                                 );
