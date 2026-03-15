@@ -59,14 +59,14 @@ export class canvasElement
             if(this.Texture.texture !== "")
             {
                 ctx.globalAlpha = this.alpha;
-                ctx.drawImage(this.Texture.texture, this.x, this.y, this.sizeX, this.sizeY);
+                ctx.drawImage(this.Texture.texture, this.x + this.offset[0], this.y + this.offset[1], this.sizeX, this.sizeY);
                 ctx.globalAlpha = 1;
             }
             else
             {
                 ctx.globalAlpha = this.alpha;
                 ctx.fillStyle = this.Texture.color;
-                ctx.fillRect(this.x, this.y, this.sizeX, this.sizeY);
+                ctx.fillRect(this.x + this.offset[0], this.y + this.offset[1], this.sizeX, this.sizeY);
                 ctx.globalAlpha = 1;
             }
         }
@@ -241,11 +241,30 @@ export class canvasPannel extends canvasElement
 
                 // draw children
                 this.components.forEach(element => {
-                    element.drawSelf(ctx);
+                    if(inBoundChecker(element, this))
+                    {
+                        element.drawSelf(ctx);
+                    }
                 });
             }
         }
 
+
+// Checks if child element in withing confines of parent element
+export function inBoundChecker(child, parent)
+    {
+        if( child.x + child.offset[0] >                 parent.x + parent.offset[0] &&
+            child.x + child.offset[0] + child.sizeX <   parent.x + parent.sizeX + parent.offset[1] &&
+            child.y + child.offset[1] >                 parent.y + parent.offset[1] &&
+            child.y + child.offset[1] + child.sizeY <   parent.y + parent.sizeY + parent.offset[1])
+            {
+                return true;
+            }
+        else
+        {
+            return false;
+        }
+    }
 
 
 
@@ -262,6 +281,8 @@ export class techtreeUpgrade extends canvasElement
             }
 
             
+            
+
             drawConnections(ctx, objectArray)
             {
                 
@@ -295,10 +316,10 @@ export class techtreeUpgrade extends canvasElement
                                             ctx.strokeStyle = "Black";
                                         }
                                             
-                                        ctx.moveTo(startX, startY);
-                                        ctx.lineTo(startX, midY);
-                                        ctx.lineTo(endX, midY);
-                                        ctx.lineTo(endX, endY);
+                                        ctx.moveTo(startX + this.offset[0], startY + this.offset[1]);
+                                        ctx.lineTo(startX + this.offset[0], midY + this.offset[1]);
+                                        ctx.lineTo(endX + this.offset[0], midY + this.offset[1]);
+                                        ctx.lineTo(endX + this.offset[0], endY + this.offset[1]);
                                         ctx.stroke();
                                 }
                             }
@@ -310,25 +331,10 @@ export class techtreeUpgrade extends canvasElement
             drawSelf(ctx)
             {
                 
+                super.drawSelf(ctx);
+
                 if(this.active)
                 {
-                    // Draw Item
-                    if(this.Texture.texture !== "")
-                    {
-                        ctx.globalAlpha = this.alpha;
-                        ctx.drawImage(this.Texture.texture, this.x, this.y, this.sizeX, this.sizeY);
-                        ctx.globalAlpha = 1;
-                    }
-                    else
-                    {
-                        ctx.globalAlpha = this.alpha;
-                        ctx.fillStyle = this.Texture.color;
-                        ctx.fillRect(this.x, this.y, this.sizeX, this.sizeY);
-                        ctx.globalAlpha = 1;
-                    }
-                
-                        
-
                 // Text
                 if (this.Texture.text !== "")
                 {
@@ -358,8 +364,8 @@ export class techtreeUpgrade extends canvasElement
                     // Centered draw
                     ctx.fillText(
                         text,
-                        this.x + this.sizeX / 2,
-                        this.y + this.sizeY / 2 
+                        this.x + this.offset[0] + this.sizeX / 2,
+                        this.y + this.offset[1] + this.sizeY / 2 
                     );
                 }
                 }

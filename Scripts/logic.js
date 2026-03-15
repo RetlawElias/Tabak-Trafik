@@ -1,5 +1,5 @@
             import { UIManager, camera} from "./dom.js";
-            import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, particleEmitter, particle} from "./RetlawsCoolCanvasControls.js";
+            import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, particleEmitter, particle, inBoundChecker} from "./RetlawsCoolCanvasControls.js";
 
 
             document.addEventListener("mousemove", updateCursorPosition);
@@ -34,6 +34,7 @@
             
             let lastTime = performance.now();
             
+            let offsettingPanel = false;
 
             var techtreePanelOffsetX = 0;
             var techtreePanelOffsetY = 0;
@@ -664,7 +665,7 @@
                 const mx = e.clientX;
                 const my = e.clientY;
 
-                if(techtreePannel.active)
+                if(techtreePannel.active && e.button === 0)
                 {
                     // resize
                     if(overResizeHandle(mx,my))
@@ -686,6 +687,16 @@
                     if(UIManager.handleClick(mx,my))
                         return;
                 }
+
+                if(techtreePannel.active && e.button === 1 && techtreePannel.containsPoint(mx,my))
+                {
+                    lastY = e.clientY;
+                    lastX = e.clientX
+                    
+
+                    offsettingPanel = true;
+                }
+
 
                 // world input
                 draggingWorld = true;
@@ -715,6 +726,15 @@
                         return;
                     }
 
+                    if(offsettingPanel)
+                    {
+                        techtreePanelOffsetX -= lastX - e.clientX;
+                        techtreePanelOffsetY -= lastY - e.clientY;
+                        lastX = mx;
+                        lastY = my;
+
+                    }
+
                     // World drag
                     if(!techtreePannel.active && draggingWorld)
                     {
@@ -729,6 +749,7 @@
                     draggingPanel = false;
                     resizingPanel = false;
                     draggingWorld = false;
+                    offsettingPanel = false;
                 });
 
 
@@ -821,10 +842,13 @@
                 // Clamp
                 camera.x = Math.max(0, Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
                 techtreePanelOffsetX = Math.max(-TECHTREE_WIDTH + VIEW_WIDTH, Math.min(TECHTREE_WIDTH - VIEW_WIDTH, techtreePanelOffsetX));
-                techtreePanelOffsetY = Math.max(0, Math.min(500, techtreePanelOffsetY));
-                /* techtreeUpgrades.forEach(element => {
-                    element.updateOffset([techtreePanelOffsetX, techtreePanelOffsetY])
-                }); panel handles the positioning */
+                techtreePanelOffsetY = Math.max(-1000, Math.min(-500, techtreePanelOffsetY));
+
+                 techtreeUpgrades.forEach(element => {
+                    element.offset[0] = techtreePanelOffsetX;
+                    element.offset[1] = techtreePanelOffsetY;
+                    //element.updateOffset([techtreePanelOffsetX, techtreePanelOffsetY])
+                });// panel handles the positioning 
 
             }   
             
@@ -1074,8 +1098,12 @@
 
             if(techtreePannel.active)
             {
-                techtreeUpgrades.forEach(element => {
-                    element.drawConnections(ctx, techtreeUpgrades);
+                techtreeUpgrades.forEach(element => 
+                {
+                    if(inBoundChecker(element, techtreePannel))
+                    {
+                        element.drawConnections(ctx, techtreeUpgrades);
+                    }
                 });
             }
 
