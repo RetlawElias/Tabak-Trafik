@@ -330,7 +330,14 @@ export class techtreeUpgrade extends canvasElement
 
             drawSelf(ctx)
             {
-                
+                if(this.isBought)
+                {
+                    this.Texture.color = "Green";
+                }
+                else
+                {
+                    this.Texture.color = "Grey";
+                }
                 super.drawSelf(ctx);
 
                 if(this.active)
