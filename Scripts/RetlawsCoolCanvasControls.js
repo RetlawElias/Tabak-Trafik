@@ -14,6 +14,55 @@ export function canvasPannelTexture(texture, color = "")
             this.color = color;
         }
 
+// Helper Function
+export function wrapText(context, text, maxWidth) 
+{
+    const paragraphs = text.split("\n");
+    const lines = [];
+
+    for (const paragraph of paragraphs) {
+        const words = paragraph.split(" ");
+        let currentLine = words[0] || "";
+
+        for (let i = 1; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine + " " + word;
+
+            if (context.measureText(testLine).width > maxWidth) {
+                lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+
+        lines.push(currentLine);
+    }
+
+    return lines;
+}
+
+
+export function parseColoredText(text) {
+    const segments = [];
+    let currentColor = "white";
+
+    const parts = text.split(/(\[.*?\])/);
+
+    for (const part of parts) {
+        if (part.startsWith("[") && part.endsWith("]")) {
+            currentColor = part.slice(1, -1);
+        } else {
+            segments.push({
+                text: part,
+                color: currentColor
+            });
+        }
+    }
+
+    return segments;
+}
+
 
 
 // Parent for all canvas-elements
@@ -107,7 +156,7 @@ export class canvasElement
                 }
             }
 
-    onClick()
+    onClick(ctx)
     {
         console.log("Item has been clicked");
     }
@@ -248,6 +297,58 @@ export function inBoundChecker(child, parent)
 
 
 
+export class techtreeUpgradeToolTip extends canvasElement
+{
+            constructor(x,y, sizeX, sizeY, Texture, text, isAbsolute, isActive, offset = [0,0])
+            {
+                super(x,y,sizeX,sizeY,Texture,isAbsolute,isActive,offset);
+                this.text = text;
+                this.alpha = 1;
+            }
+
+            drawSelf(ctx)
+            {
+                super.drawSelf(ctx);
+
+                if(this.active)
+                {
+                    // Text
+                    if (this.text !== "")
+                    {   
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = "black";
+                        ctx.font = "12px Courier";
+                    
+
+
+                        const lines = wrapText(ctx, this.text, this.sizeX);
+                        const lineHeight = 20;
+
+
+                        lines.forEach((line, i) => {
+                            ctx.fillText(line, this.x + this.offset[0] + this.sizeX / 2, this.y + this.offset[1] + i * lineHeight + 20);
+                        });
+                    }
+                }
+            }
+
+            drawColoredText(ctx, segments, x, y) 
+            {
+                let offsetX = x;
+
+                for (const segment of segments) 
+                {
+                    ctx.fillStyle = segment.color;
+                    ctx.fillText(segment.text, offsetX, y);
+                    
+                    offsetX += ctx.measureText(segment.text).width;
+                }
+            }
+}
+
+
+
 // Specialized Buttons for Techtree purposes
 export class techtreeUpgrade extends canvasElement
         {
@@ -258,6 +359,7 @@ export class techtreeUpgrade extends canvasElement
                 this.cost = cost;
                 this.condition = condition;
                 this.isBought = false;
+                this.Tooltip;
             }
 
             
@@ -308,9 +410,9 @@ export class techtreeUpgrade extends canvasElement
             }
 
 
-            onHover()
+            onHover(ctx)
             {
-                
+                this.Tooltip.drawSelf(ctx);
             }
 
 

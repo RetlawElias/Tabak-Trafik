@@ -1,5 +1,5 @@
             import { UIManager, camera} from "./dom.js";
-            import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, particleEmitter, particle, inBoundChecker} from "./RetlawsCoolCanvasControls.js";
+            import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip} from "./RetlawsCoolCanvasControls.js";
 
 
             document.addEventListener("mousemove", updateCursorPosition);
@@ -218,9 +218,27 @@
                             true
                         );
 
-                        // Store position relative to panel top-left
                         obj.localX = data.Upgrades[i].Position[0];
                         obj.localY = data.Upgrades[i].Position[1];
+
+
+                        obj.Tooltip = new techtreeUpgradeToolTip(obj.x, obj.y, 200, 400, new canvasButtonTexture("", "Grey", ""), data.Upgrades[i].ToolTip, true, true);
+
+                        obj.Tooltip.localX = obj.x + obj.sizeX + 25;
+                        obj.Tooltip.localY = obj.y;
+
+                        
+                        obj.Tooltip.updateOffset = function(panelX, panelY, panelW, panelH) {
+                            const centerX = panelX + panelW / 2;
+                            const centerY = panelY + panelH / 2;
+
+                            this.x = centerX + this.localX - this.sizeX / 2 + 50;
+                            this.y = centerY + this.localY;
+                        }
+
+
+
+                        
 
                         // Function to update absolute position when panel moves
                         obj.updateOffset = function(panelX, panelY, panelW, panelH) {
@@ -229,6 +247,8 @@
 
                             this.x = centerX + this.localX - this.sizeX / 2;
                             this.y = centerY + this.localY - this.sizeY / 2;
+
+                            obj.Tooltip.updateOffset(panelX, panelY, panelW, panelH);
                         };
 
                         // Set initial position
@@ -347,15 +367,6 @@
                     techtreeButton.setActive(true);
                 }
 
-
-                startButton.onHover = function(clientClick)
-                {
-                    console.log("Hovered the Button");
-                    if(clientClick)
-                    {
-                        startButton.onClick();
-                    }   
-                }
 
                 startButton.onClickCheck = function(cursorX, cursorY, clientClick)
                 {
@@ -647,7 +658,7 @@
                                     cigarettesGain += 10.0 * 10;
                                     break;
                             }
-                            
+
                             machineLevels[i] += 10;
                             machineCostMultipliers[i] *= Math.pow(1.1, 10);
                         }
@@ -768,8 +779,6 @@
                     const rect = canvas.getBoundingClientRect();
                     const mouseX = e.clientX - rect.left;
                     const mouseY = e.clientY - rect.top;
-
-                    UIManager.onHoverCheck(mouseX, mouseY);
                 });
                 
 
@@ -876,6 +885,8 @@
                  techtreeUpgrades.forEach(element => {
                     element.offset[0] = techtreePanelOffsetX;
                     element.offset[1] = techtreePanelOffsetY;
+                    element.Tooltip.offset[0] = techtreePanelOffsetX;
+                    element.Tooltip.offset[1] = techtreePanelOffsetY;
                     //element.updateOffset([techtreePanelOffsetX, techtreePanelOffsetY])
                 });// panel handles the positioning 
 
@@ -1186,7 +1197,9 @@
                 );
             }
 
-            
+            UIManager.onHoverCheck(cursorX, cursorY, ctx);
+
+
             clientClick = false;
         }
 

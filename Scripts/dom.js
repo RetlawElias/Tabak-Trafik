@@ -46,7 +46,7 @@ export const UIManager =
                     return false;
                 },
 
-                onHoverCheck(mouseX, mouseY)
+                onHoverCheck(mouseX, mouseY, ctx)
                 {
                     for (let i = this.elements.length - 1; i >= 0; i--) 
                     {
@@ -63,7 +63,7 @@ export const UIManager =
 
                                 if (child.active && child.hitTest(mouseX, mouseY, camera)) 
                                 {
-                                    child.onHover();
+                                    child.onHover(ctx);
                                     return true;
                                 }
                             }
@@ -72,7 +72,7 @@ export const UIManager =
                         // Check the element itself
                         if (element.hitTest(mouseX, mouseY, camera)) 
                         {
-                            element.onHover();
+                            element.onHover(ctx);
                             return true;
                         }
                     }

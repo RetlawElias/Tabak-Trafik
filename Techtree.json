@@ -5,7 +5,7 @@
       "Cost": 5,
       "Position": [-400, 100],
       "Size": [100, 50],
-      "ToolTip": "Increase: \n +0.5% Income \n\n Decrease: \n -5 Upgrade Points",
+      "ToolTip": "Dieses Upgrade hat einen viel zu langen Tooltip um zu testen wie das ganze später von dem Tooltip object formatiert wird. Nicht wie die meisten anderen Objecte wird hier nämlich nicht für eine Zeile formatiert, sondern für bis zu X viele! \nIncrease: \n +0.5% Income \n\n Decrease: \n -5 Upgrade Points",
       "Condition": [],
       "Effects": [
         {
