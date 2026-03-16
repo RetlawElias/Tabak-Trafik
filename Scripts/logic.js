@@ -346,6 +346,31 @@
                     startButton.active = false;
                     techtreeButton.setActive(true);
                 }
+
+
+                startButton.onHover = function(clientClick)
+                {
+                    console.log("Hovered the Button");
+                    if(clientClick)
+                    {
+                        startButton.onClick();
+                    }   
+                }
+
+                startButton.onClickCheck = function(cursorX, cursorY, clientClick)
+                {
+                    if(startButton.active)
+                    {
+                        if(cursorX >= startButton.x && cursorX <= startButton.x + startButton.sizeX &&
+                           cursorY >= startButton.y && cursorY <= startButton.y + startButton.sizeY)
+                        {
+                            startButton.onHover(clientClick);
+                            return true;
+                        }
+                
+                        return false;
+                    }
+                }
                 
                 
                 audioButton.onClick = function()
@@ -433,55 +458,39 @@
                                         machineCostMultipliers[i] *= 1.1;
                                     }
                                     
-                                    machineLevels[i]++;
                                     cigarettesGain += 0.006;
                                     break;
                                 case 1:
-                                    machineLevels[i]++;
                                     cigarettesGain += 0.03;
-                                    machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 2:
-                                    machineLevels[i]++;
                                     cigarettesGain += 0.1;
-                                    machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 3:
-                                    machineLevels[i]++;
                                     cigarettesGain += 0.25;
-                                    machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 4:
-                                    machineLevels[i]++;
                                     cigarettesGain += 0.75;
-                                    machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 5:
-                                    machineLevels[i]++;
                                     cigarettesGain += 1.5;
-                                    machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 6:
-                                    machineLevels[i]++;
                                     cigarettesGain += 2.5;
-                                    machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 7:
-                                    machineLevels[i]++;
                                     cigarettesGain += 4.0;
-                                    machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 8:
-                                    machineLevels[i]++;
                                     cigarettesGain += 4.0;
-                                    machineCostMultipliers[i] *= 1.1;
                                     break;
                                 case 9:
-                                    machineLevels[i]++;
                                     cigarettesGain += 10.0;
-                                    machineCostMultipliers[i] *= 1.1;
                                     break;
                             }
+
+                            machineCostMultipliers[i] *= 1.1;
+                            machineLevels[i]++;
                         }
                     }
 
@@ -532,55 +541,38 @@
                             {
                                 case 0:
                                     cigarettesGain += 0.006 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 1:
                                     cigarettesGain += 0.03 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 2:
                                     cigarettesGain += 0.1 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 3:
                                     cigarettesGain += 0.25 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 4:
                                     cigarettesGain += 0.75 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 5:
                                     cigarettesGain += 1.5 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 6:
                                     cigarettesGain += 2.5 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 7:
                                     cigarettesGain += 4.0 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 8:
                                     cigarettesGain += 4.0 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                                 case 9:
                                     cigarettesGain += 10.0 * 5;
-                                    machineLevels[i] += 5;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 5);
                                     break;
                             }
+
+                            machineLevels[i] += 5;
+                            machineCostMultipliers[i] *= Math.pow(1.1, 5);
                         }
                     }
 
@@ -626,55 +618,38 @@
                             {
                                 case 0:
                                     cigarettesGain += 0.006 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 1:
                                     cigarettesGain += 0.03 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 2:
                                     cigarettesGain += 0.1 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 3:
                                     cigarettesGain += 0.25 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 4:
                                     cigarettesGain += 0.75 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 5:
                                     cigarettesGain += 1.5 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 6:
                                     cigarettesGain += 2.5 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 7:
                                     cigarettesGain += 4.0 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 8:
                                     cigarettesGain += 4.0 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                                 case 9:
                                     cigarettesGain += 10.0 * 10;
-                                    machineLevels[i] += 10;
-                                    machineCostMultipliers[i] *= Math.pow(1.1, 10);
                                     break;
                             }
+                            
+                            machineLevels[i] += 10;
+                            machineCostMultipliers[i] *= Math.pow(1.1, 10);
                         }
                     }
 
@@ -789,6 +764,12 @@
                         camera.x -= (mx - lastX);
                         lastX = mx;
                     }
+
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+
+                    UIManager.onHoverCheck(mouseX, mouseY);
                 });
                 
 

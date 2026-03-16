@@ -19,6 +19,8 @@ export function canvasPannelTexture(texture, color = "")
 // Parent for all canvas-elements
 export class canvasElement 
 {
+    static zPriority = 0;
+    
     constructor(x,y, sizeX, sizeY, Texture, isAbsolute, isActive = true, offset = [0,0])
     {
         this.x = x;
@@ -31,7 +33,10 @@ export class canvasElement
         this.active = isActive;
         this.offset = offset;
         this.alpha = 1;
-        this.zPriority = 0;
+        
+        canvasElement.zPriority++;
+        this.zPosition = canvasElement.zPriority;
+        
     }
 
     setActive(setActive)
@@ -49,6 +54,11 @@ export class canvasElement
     setAlpha(alpha)
     {
         this.alpha = alpha;
+    }
+
+    onHover()
+    {
+        console.log("Hovered element: " + this);
     }
 
     // Automated by dom.js/UIManager/draw()
@@ -151,37 +161,7 @@ export class canvasButton extends canvasElement
                         );
                         ctx.globalAlpha = 1;
                     }
-            }
-            
-
-
-            // OBSOLETE (No UIManager Supported use)
-            onClickCheck = function(cursorX, cursorY, clientClick)
-            {
-                if(this.active)
-                {
-                    if(cursorX >= this.x && cursorX <= this.x + this.sizeX &&
-                    cursorY >= this.y && cursorY <= this.y + this.sizeY)
-                    {
-                        this.onHover(clientClick);
-                        return true;
-                    }
-
-                return false;
-                }
-            }
-
-            // OBSOLETE (No UIManager Supported use)
-            onHover = function(clientClick)
-            {
-                console.log("Hovered the Button");
-                if(clientClick)
-                {
-                    this.onClick();
-                }   
-            }
-
-            
+            }    
         }
 
 
@@ -325,6 +305,12 @@ export class techtreeUpgrade extends canvasElement
                             }
                         }
                 }
+            }
+
+
+            onHover()
+            {
+                
             }
 
 
@@ -512,4 +498,3 @@ export class particle extends canvasElement
         this.lifetime--;
     }
 }
-

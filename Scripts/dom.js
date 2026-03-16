@@ -8,11 +8,13 @@ export const UIManager =
                 add(element) 
                 {
                     this.elements.push(element);
+
+                    this.elements.sort((a, b) => a.zPosition - b.zPosition);
                 },
 
                 handleClick(mouseX, mouseY) 
                 {
-                    for (let i = this.elements.length - 1; i >= 0; i--) 
+                    for (let i = 0; i < this.elements.length; i++) 
                     {
                         const element = this.elements[i];
 
@@ -37,6 +39,40 @@ export const UIManager =
                         if (element.hitTest(mouseX, mouseY, camera)) 
                         {
                             element.onClick();
+                            return true;
+                        }
+                    }
+
+                    return false;
+                },
+
+                onHoverCheck(mouseX, mouseY)
+                {
+                    for (let i = this.elements.length - 1; i >= 0; i--) 
+                    {
+                        const element = this.elements[i];
+
+                        if (!element.active) continue;
+
+                        // Check panel children first (topmost)
+                        if (element.components) 
+                        {
+                            for (let j = element.components.length - 1; j >= 0; j--) 
+                            {
+                                const child = element.components[j];
+
+                                if (child.active && child.hitTest(mouseX, mouseY, camera)) 
+                                {
+                                    child.onHover();
+                                    return true;
+                                }
+                            }
+                        }
+
+                        // Check the element itself
+                        if (element.hitTest(mouseX, mouseY, camera)) 
+                        {
+                            element.onHover();
                             return true;
                         }
                     }
