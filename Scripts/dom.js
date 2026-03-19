@@ -117,5 +117,47 @@ export const UIManager =
 
 
 
-            
+export const AnimationManager =
+{
+    elements: [],
+                
+    add(element) 
+    {
+        this.elements.push(element);
+    },
+
+    callUpdate(frame)
+    {
+        this.elements.forEach(element => 
+                        {
+  
+                                element.update(frame);
+                        });
+    },
+
+
+    draw(ctx, absolute) 
+                {
+                    if(absolute)
+                    {
+                        this.elements.forEach(element => 
+                        {
+                            if(element.isAbsolute)
+                            {
+                                element.drawSelf(ctx);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        this.elements.forEach(element => 
+                        {
+                            if(!element.isAbsolute)
+                            {
+                                element.drawSelf(ctx);
+                            }
+                        });    
+                    }
+                }
+}
 

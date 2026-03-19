@@ -1,5 +1,6 @@
-            import { UIManager, camera} from "./dom.js";
+            import { UIManager, camera, AnimationManager} from "./dom.js";
             import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip} from "./RetlawsCoolCanvasControls.js";
+            import { animation } from "./animationMaster.js";
 
 
             document.addEventListener("mousemove", updateCursorPosition);
@@ -20,7 +21,6 @@
             
             
             var audio = new Audio('Audio/Westward.wav');
-            
             
             
             let direction = 1;        // 1 = right, -1 = left
@@ -144,6 +144,21 @@
             const MachineFrame5 = document.getElementById("Machine_Frame5");
             const MachineFrame6 = document.getElementById("Machine_Frame6");
             const MachineFrame7 = document.getElementById("Machine_Frame7");
+
+
+
+            // Animationdata
+            var machineFrameCollection = [MachineFrame1, MachineFrame2, MachineFrame3, MachineFrame4, MachineFrame5, MachineFrame6, MachineFrame7];
+            var converyerFrameCollection = [ConveyerFrame1, ConveyerFrame2, ConveyerFrame3, ConveyerFrame4];
+
+
+
+
+            //Debug
+            var frameIncrements = 1;
+            var updateIntervals = 20;
+            var debug = false;
+            
 
 
 
@@ -500,6 +515,26 @@
                                     break;
                             }
 
+                            if(machineLevels[i] == 0)
+                            {
+                                // Machine: machineX(i);
+                                // Conveyer: machineX(i) + 200;
+                                // Box: machineX(i) + ?;
+
+                                //ctx.drawImage(MachineFrame1, machineX(i), 512, 256, 512);
+                                //ctx.drawImage(ConveyerFrame4, 390 + 1100 * i, 760, 512, 256);
+                                //ctx.drawImage(BoxFrame1, machineX(i) + 535, 830, 256, 256);
+
+                                var machineAnimation = new animation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
+                                var conveyerAnimation = new animation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
+                                var boxAnimation = new animation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
+                                var cigaretAnimation = new animation(machineX(i));
+
+                                AnimationManager.add(machineAnimation);
+                                AnimationManager.add(conveyerAnimation);
+                                AnimationManager.add(boxAnimation);
+                            }
+
                             machineCostMultipliers[i] *= 1.1;
                             machineLevels[i]++;
                         }
@@ -806,12 +841,90 @@
 
             function addListenersToWindow()
             {
+                //
+                //  !!! DEBUG CHEATS !!!
+                //
+
+            
+
+
+
+
+
                 window.addEventListener('keydown', function (e) 
                 {
-                    if (e.key === "ArrowDown") 
+                    if (e.key === "ArrowDown" && debug) 
                     {
-                            console.log("pressed");
+                        frameIncrements--;
                     } 
+                    else if(e.key === "ArrowUp" && debug)
+                    {
+                        frameIncrements++;
+                    }
+                    else if(e.key === "ArrowLeft" && debug)
+                    {
+                        updateIntervals++;
+                        this.clearInterval(myGameArea.interval);
+                        myGameArea.interval = setInterval(updateGameArea, updateIntervals);
+                    }
+                    else if(e.key === "ArrowRight" && debug)
+                    {
+                        updateIntervals--;
+                        this.clearInterval(myGameArea.interval);
+                        myGameArea.interval = setInterval(updateGameArea, updateIntervals);
+                    }
+                    else if(e.key === "0" || e.key === "1" || e.key === "2" || e.key === "3" || e.key === "4" || e.key === "5" || e.key === "6" || e.key === "7" || e.key === "8" || e.key === "9")
+                    {
+                        if(debug)
+                        {
+                            switch(e.key)
+                            {
+                                case "0":
+                                    cigarettes += 10;
+                                    break;
+                                case "1":
+                                    cigarettes += 1000;
+                                    break;
+                                case "2":
+                                    cigarettes += 100000;
+                                    break;
+                                case "3":
+                                    cigarettes += 10000000;
+                                    break;
+                                case "4":
+                                    cigarettes += 1000000000;
+                                    break;
+                                case "5":
+                                    cigarettes += 100000000000;
+                                    break;
+                                case "6":
+                                    cigarettes += 10000000000000;
+                                    break;
+                                case "7":
+                                    upgradeCigarettes += 10;
+                                    break;
+                                case "8":
+                                    upgradeCigarettes += 1000;
+                                    break;
+                                case "9":
+                                    premiumCigarettes += 10;
+                                    break;
+                            }
+                        }
+                    }
+                    else if(e.key === "#")
+                    {
+                        if(!debug)
+                        {
+                            debug = true;
+                            this.alert("DEBUG MODE ACTIVATED!");
+                        }
+                        else
+                        {
+                            debug = false;
+                            this.alert("DEBUG MODE DEACTIVATED!");
+                        }
+                    }
                 });
                     
                 window.addEventListener('resize', function() 
@@ -946,7 +1059,7 @@
             const now = performance.now();
             const dt = (now - lastTime) / 1000; // seconds
             
-            frame++;
+            frame += frameIncrements;
 
             if(techtreePannel.active && techtreePannel.containsPoint(cursorX, cursorY))
             {
@@ -1007,6 +1120,7 @@
 
 
             update();
+            AnimationManager.callUpdate(frame);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
@@ -1025,73 +1139,17 @@
             
             // Camera Elements Only
             UIManager.draw(ctx, false);
+            AnimationManager.draw(ctx, false);
+
 
             for(let i = 0; i < machineLevels.length; i++)
             {
                 if(machineLevels[i] > 0)
                 {
-
-                    const machineAnimationSpeed = 150;
-
-                    
-
-                    if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 6)
-                    {
-                        ctx.drawImage(MachineFrame1, machineX(i), 512, 256, 512);
-                    }
-                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 5)
-                    {
-                        ctx.drawImage(MachineFrame7, machineX(i), 500, 256, 512);
-                    }
-                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 4)
-                    {
-                        ctx.drawImage(MachineFrame6, machineX(i), 500, 256, 512);
-                    }
-                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 3)
-                    {
-                        ctx.drawImage(MachineFrame5, machineX(i), 500, 256, 512);
-                    }
-                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17) * 2)
-                    {
-                        ctx.drawImage(MachineFrame4, machineX(i), 500, 256, 512);
-                    }
-                    else if(frame % machineAnimationSpeed > Math.round(machineAnimationSpeed / 17))
-                    {
-                        ctx.drawImage(MachineFrame3, machineX(i), 500, 256, 512);
-                    }
-                    else if(frame % machineAnimationSpeed >= 0)
-                    {
-                        ctx.drawImage(MachineFrame2, machineX(i), 500, 256, 512);
-                    }
-
-
-                    const conveyerAnimationSpeed = 50;
-
-
-                    if(frame % (conveyerAnimationSpeed * 10) == 0)
+                    if(frame % 500 == 0)
                     {
                         animatedCigarettes.push([machineX(i) + 190, 760 + 256 / 2 - 50, 0]);
                     }
-
-
-                    if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4) * 3)
-                    {
-                        ctx.drawImage(ConveyerFrame4, 390 + 1100 * i, 760, 512, 256);
-                    }
-                    else if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4) * 2)
-                    {
-                        ctx.drawImage(ConveyerFrame3, 390 + 1100 * i, 760, 512, 256);
-                    }
-                    else if(frame % conveyerAnimationSpeed > Math.round(conveyerAnimationSpeed / 4))
-                    {
-                        ctx.drawImage(ConveyerFrame2, 390 + 1100 * i, 760, 512, 256);
-                    }
-                    else if(frame % conveyerAnimationSpeed >= 0)
-                    {
-                        ctx.drawImage(ConveyerFrame1, 390 + 1100 * i, 760, 512, 256);
-                    }
-
-                    ctx.drawImage(BoxFrame1, machineX(i) + 535, 830, 256, 256);
                 }
             }
 
@@ -1135,6 +1193,7 @@
 
             // Relative to Screen //
             UIManager.draw(ctx, true);
+            AnimationManager.draw(ctx, true);
 
             if(techtreePannel.active)
             {
@@ -1150,29 +1209,35 @@
         
 
 
-
-            // Debug Info
             ctx.textAlign = "left";
             ctx.textBaseline = "middle"; // center aint a valid value here...lovely javascript
             ctx.font = "20px Arial";
             ctx.strokeStyle = "Black";
             ctx.fillStyle = "Black";
-            ctx.fillText("Frame: " + frame, 20, 20);
-            ctx.fillText(mousePosition, 20, 50);
-            ctx.fillText("TechtreeOffset X: " + techtreePanelOffsetX + ", Y: " + techtreePanelOffsetY, 20, 80);
-            ctx.fillText("Current Active Emitter: " + currentActiveParticleEmitter.length, 20, 110);
 
-            let particleAmount = 0;
-            currentActiveParticleEmitter.forEach(element => {
-                element.particleChildren.forEach(e => {
-                    particleAmount++;
+
+            // Debug Info
+            if(debug)
+            {                
+                ctx.fillText("Frame: " + frame, 20, 20);
+                ctx.fillText(mousePosition, 20, 50);
+                ctx.fillText("TechtreeOffset X: " + techtreePanelOffsetX + ", Y: " + techtreePanelOffsetY, 20, 80);
+                ctx.fillText("Current Active Emitter: " + currentActiveParticleEmitter.length, 20, 110);
+                
+            
+                let particleAmount = 0;
+                currentActiveParticleEmitter.forEach(element => {
+                    element.particleChildren.forEach(e => {
+                        particleAmount++;
+                    });
                 });
-            });
-
-            ctx.fillText("Particle Amount: " + particleAmount, 20, 140);
-
-
-
+                
+                ctx.fillText("Particle Amount: " + particleAmount, 20, 140);
+                ctx.fillText("Active Animations: " + AnimationManager.elements.length, 20, 170);
+            }
+            
+            
+            
             drawCurrencyPanel();
             
             updateUpgradeButtons();
