@@ -1,6 +1,7 @@
             import { UIManager, camera, AnimationManager} from "./dom.js";
-            import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip} from "./RetlawsCoolCanvasControls.js";
-            import { animation } from "./animationMaster.js";
+            import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, 
+                     particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip, canvasLabel, pulseEmitter, pulse} from "./RetlawsCoolCanvasControls.js";
+            import { animation, loadFrames } from "./animationMaster.js";
 
 
             document.addEventListener("mousemove", updateCursorPosition);
@@ -20,7 +21,48 @@
             const CIGARETTESPANELOFFSET = -300;
             
             
+            // Wheel of fortune prizes 
+            const segments = [
+                "100 Coins",
+                "50 Coins",
+                "Nothing",
+                "200 Coins",
+                "Spin Again",
+                "150 Coins",
+                "JACKPOT",
+                "75 Coins"
+            ];
+
+            const colors = [
+                "#f94144",
+                "#f3722c",
+                "#f9c74f",
+                "#90be6d",
+                "#43aa8b",
+                "#577590",
+                "#277da1",
+                "#9b5de5"
+            ];
+
+            
+
+            const slice = (Math.PI*2)/segments.length;
+
+            let prizeClaimed = true;
+            let WOFrotation = 0;
+            let WOFvelocity = 0;
+            let WOFspinning = false;
+
+            const trumpAnimation = loadFrames("Textures/WinningAnimation", 138);
+            const anim = new animation(100, 100, 600, 800, trumpAnimation, 1, true, true);
+            anim.setActive(false);
+
+            var partyInterval;
+
+
+
             var audio = new Audio('Audio/Westward.wav');
+            var jackpot = new Audio('Audio/winning.mp3');
             
             
             let direction = 1;        // 1 = right, -1 = left
@@ -96,7 +138,11 @@
             var startButton;
             var audioButton;
             var closeButton;
+            var claimButton;
+            var WOFpanel;
             
+            var prizeLabel;
+
             var mousePosition;
             var cursorX;
             var cursorY;
@@ -354,12 +400,21 @@
                 techtreeButton = new canvasButton(myGameArea.canvas.width / 2 - 150, 0, 200, 50, new canvasButtonTexture("", "Grey", "Techtree"), true);
                 startButton = new canvasButton(myGameArea.canvas.width / 2 - 250, 100, 500, 250, new canvasButtonTexture(TextureButton), true);
                 audioButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 60, 50, 50, new canvasButtonTexture("", "Red", "🎵"), true);
-                
+                claimButton = new canvasButton(myGameArea.canvas.width / 2 - 200, myGameArea.canvas.height - 300, 400, 200, new canvasButtonTexture("", "Yellow", "Claim!"), true, false);
+
                 techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(240,240,240,0.85)"), true);
+                WOFpanel = new canvasPannel(myGameArea.canvas.width / 2 - 500, 50, 1000, myGameArea.canvas.height - 100, new canvasPannelTexture("", "white"), true);
+                WOFpanel.alpha = 0.8;
+                
 
                 closeButton = new canvasButton(techtreePannel.x + techtreePannel.sizeX - 35, techtreePannel.y + 5, 30, 30, new canvasButtonTexture("", "Red", "X"), true);
                 techtreePannel.addChild(closeButton);
                 
+
+                prizeLabel = new canvasLabel(canvas.width / 2 - 150, 100, 300, 150, new canvasButtonTexture("", "", "Winnings"), true, true);
+                
+
+
                 //OnClick Functions
                 techtreeButton.onClick = function() {
                     techtreePannel.setActive(true);
@@ -415,15 +470,30 @@
                             audio.volume = 0.2;
                         }
                 }
+
+                claimButton.onClick = function()
+                {
+                    prizeClaimed = true;
+                    clearInterval(partyInterval);
+                    WOFpanel.setActive(false);
+                }
                     
                     
                 techtreeButton.setActive(false);
                 techtreePannel.setActive(false);
 
 
+                WOFpanel.addChild(claimButton);
+                WOFpanel.addChild(prizeLabel);
+                WOFpanel.setActive(false);
+                prizeLabel.setActive(false);
+
+                //UIManager.add(prizeLabel);
                 UIManager.add(startButton);
                 UIManager.add(audioButton);
+                //UIManager.add(claimButton);
                 UIManager.add(techtreePannel);
+                UIManager.add(WOFpanel);
                 UIManager.add(techtreeButton);
 
                 
@@ -714,6 +784,14 @@
             {
                 myGameArea.start();
 
+                
+
+                
+
+                AnimationManager.add(anim);
+
+
+
                 inititialiseButtons();
 
                 await fetchTechtree('Techtree.json');
@@ -924,6 +1002,13 @@
                             debug = false;
                             this.alert("DEBUG MODE DEACTIVATED!");
                         }
+                    }
+                    else if(e.key === "p" && debug)
+                    {
+                        WOFpanel.setActive(true);
+                        claimButton.setActive(false);
+                        prizeLabel.setActive(false);
+                        spin();
                     }
                 });
                     
@@ -1136,6 +1221,11 @@
             drawBackground(ctx);
             drawButtonsAndLabels();
 
+
+
+            
+        
+
             
             // Camera Elements Only
             UIManager.draw(ctx, false);
@@ -1180,7 +1270,11 @@
                 {
                     currentActiveParticleEmitter[i].spawnParticle();
                 }
-                else if(currentActiveParticleEmitter[i].particleChildren.length == 0)
+                else if(currentActiveParticleEmitter[i].particleChildren && currentActiveParticleEmitter[i].particleChildren.length == 0)
+                {
+                    currentActiveParticleEmitter.splice(i, 1);
+                }
+                else if(currentActiveParticleEmitter[i].pulseChildren && currentActiveParticleEmitter[i].pulseChildren.length == 0)
                 {
                     currentActiveParticleEmitter.splice(i, 1);
                 }
@@ -1194,6 +1288,30 @@
             // Relative to Screen //
             UIManager.draw(ctx, true);
             AnimationManager.draw(ctx, true);
+
+
+
+            
+            if(WOFspinning || !prizeClaimed)
+            {
+
+                WOFrotation += WOFvelocity;
+                WOFvelocity *= 0.985;
+
+                if(WOFvelocity < 0.0002 && !prizeClaimed && WOFspinning)
+                {
+                    WOFspinning = false;
+                    detectPrize();
+                }
+                
+                drawWheel();
+            }
+
+
+
+
+
+
 
             if(techtreePannel.active)
             {
@@ -1227,9 +1345,18 @@
             
                 let particleAmount = 0;
                 currentActiveParticleEmitter.forEach(element => {
-                    element.particleChildren.forEach(e => {
-                        particleAmount++;
-                    });
+                    if(element.particleChildren)
+                    {
+                        element.particleChildren.forEach(e => {
+                            particleAmount++;
+                        });
+                    }
+                    if(element.pulseChildren)
+                    {
+                        element.pulseChildren.forEach(e => {
+                            particleAmount++;
+                        });
+                    }
                 });
                 
                 ctx.fillText("Particle Amount: " + particleAmount, 20, 140);
@@ -1469,3 +1596,136 @@
                 my > techtreePannel.y + techtreePannel.sizeY - resizeHandleSize
             )
         }
+
+
+        function drawWheel()
+        {
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const radius = 200;
+
+    ctx.save();
+
+    ctx.translate(cx,cy);
+    ctx.rotate(WOFrotation);
+    ctx.translate(-cx,-cy);
+
+    for(let i=0;i<segments.length;i++){
+
+        let start = slice*i;
+        let end = slice*(i+1);
+
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,radius,start,end);
+        ctx.closePath();
+
+        ctx.fillStyle = colors[i];
+        ctx.fill();
+
+        ctx.stroke();
+
+        ctx.save();
+
+        ctx.translate(cx,cy);
+        ctx.rotate(start + slice/2);
+        ctx.textAlign="right";
+        ctx.fillStyle="white";
+        ctx.font="16px Arial";
+        ctx.fillText(segments[i], radius-10,5);
+
+        ctx.restore();
+    }
+
+    ctx.restore();
+
+    drawPointer();
+}
+
+
+function drawPointer()
+{
+
+    const cx = canvas.width / 2 + 210;
+    const cy = canvas.height / 2 ;
+    const radius = 200;
+
+    ctx.fillStyle = "red";
+
+    ctx.beginPath();
+    ctx.moveTo(cx,cy+10);
+    ctx.lineTo(cx,cy-10);
+    ctx.lineTo(cx-30,cy);
+    ctx.closePath();
+
+    ctx.fill();
+}
+
+
+function spin()
+{
+    prizeClaimed = false;
+
+    if(WOFspinning) return;
+
+    WOFvelocity = Math.random()*0.35 + 0.25;
+    WOFspinning = true;
+}
+
+
+function detectPrize()
+{
+
+    let degrees = WOFrotation * 180 / Math.PI;
+    let normalized = degrees % 360;
+
+    let sliceDeg = 360 / segments.length;
+
+    let index = Math.floor((360 - normalized) / sliceDeg) % segments.length;
+
+    let prize = segments[index];
+    console.log(prize);
+    
+
+    prize = "JACKPOT";
+
+    prizeLabel.Texture.color = "Black";
+    prizeLabel.Texture.text = prize;
+    prizeLabel.setActive(true);
+    claimButton.setActive(true);
+
+
+    if(prize == "JACKPOT")
+    {
+        partyInterval = setInterval(spawnAPulse, 10);
+        prizeLabel.Texture.color = "Red";
+        prizeLabel.Texture.text = "!!! JACKPOT !!!";
+        anim.setActive(true);
+        anim.manipulateAnimation("teleport", [-800, canvas.height / 2 - 400]);
+        anim.manipulateAnimation("setFrame", 0);
+        anim.behaviour = [["move", 4, 0], ["killSelfOnPositionX", canvas.width]];
+        jackpot.volume = 0.5;
+        jackpot.play();
+    }
+    
+}
+
+function spawnAPulse()
+{
+    currentActiveParticleEmitter.push(
+                new pulseEmitter(
+                    Math.floor(Math.random() * canvas.width), 
+                    Math.floor(Math.random() * canvas.height),
+                    "rgb("+ Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ")",
+                    0.2,
+                    Math.floor(Math.random() * 5),
+                    100,
+                    40,
+                    true,
+                    true
+                )
+            );
+            currentActiveParticleEmitter[currentActiveParticleEmitter.length-1].alpha = 0.1;
+            UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+}

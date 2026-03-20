@@ -16,6 +16,11 @@ export class animation
         this.behaviour = [];
     }
 
+    setActive(active)
+    {
+        this.isActive = active;
+    }
+
     setAlpha(alpha)
     {
         this.alpha = alpha;
@@ -23,41 +28,85 @@ export class animation
 
     update(frame)
     {
-        this.updateBehaviour(frame);
-
-        if(frame % this.updateInterval == 0)
+        if(this.isActive)
         {
-            this.step++;
-            if(this.step >= this.Frames.length)
-            {
-                this.step = 0;
-            }
+
+            this.updateBehaviour(frame);
+            
+            
+            
+            if(frame % this.updateInterval == 0)
+                {
+                    this.step++;
+                    if(this.step >= this.Frames.length)
+                        {
+                            this.step = 0;
+                        }
+                    }
+                }
+        }
+
+    manipulateAnimation(command, values)
+    {
+        try
+        {
+        switch(command)
+        {
+            case "move":
+                this.x += values[0];
+                this.y += values[1];
+                break;
+            case "teleport":
+                this.x = values[0];
+                this.y = values[1];
+                break;
+            case "setFrame":
+                this.step = values;
+                break;
+            case "setUpdateFrequency":
+                this.updateInterval = values;
+        }
+        }
+        catch
+        {
+            console.error("Critical Error in Animation-Command");
         }
     }
 
+
     updateBehaviour(frame)
     {
-        switch(this.behaviour[0])
-        {
+        this.behaviour.forEach(behaviour => {
+            switch(behaviour[0])
+            {
             case "move":
-                this.x += this.behaviour[1];
-                this.y += this.behaviour[2];
+                this.x += behaviour[1];
+                this.y += behaviour[2];
                 break;
             case "teleport":
-                this.x = this.behaviour[1];
-                this.x = this.behaviour[2];
+                this.x = behaviour[1];
+                this.y = behaviour[2];
                 break;
             case "conditionTeleportX":
-                if(frame % this.behaviour[1] == 0)
+                if(frame % behaviour[1] == 0)
                 {
-                    this.x = this.behaviour[1];
+                    this.x = behaviour[1];
                 }
+                break;
             case "conditionTeleportY":
-                if(frame % this.behaviour[1] == 0)
+                if(frame % behaviour[1] == 0)
                 {
-                    this.y = this.behaviour[1];
+                    this.y = behaviour[1];
                 }
-        }
+                break;
+            case "killSelfOnPositionX":
+                if(this.x >= behaviour[1])
+                {
+                    this.setActive(false);
+                }
+                break;
+            }
+        })
     }
 
     drawSelf(ctx)
@@ -70,3 +119,37 @@ export class animation
         }
     }
 }
+
+
+export function loadFrames(path, count) 
+{
+    const frames = [];
+
+    for (let i = 1; i < count + 1; i += 4)     
+    {
+        if(i >= 10)
+        {
+            if(i >= 100)
+            {
+                const img = new Image();
+                img.src = `${path}/0${i}.png`; // adjust naming
+                frames.push(img);
+            }
+            else
+            {
+                const img = new Image();
+                img.src = `${path}/00${i}.png`; // adjust naming
+                frames.push(img);
+            }
+        }
+        else
+        {
+            const img = new Image();
+            img.src = `${path}/000${i}.png`; // adjust naming
+            frames.push(img);
+        }
+    }
+
+    return frames;
+}
+

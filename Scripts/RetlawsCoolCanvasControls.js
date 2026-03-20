@@ -468,6 +468,143 @@ export class techtreeUpgrade extends canvasElement
         }
 
 
+export class pulseEmitter extends canvasElement
+{
+    constructor(x, y, color/* Use CanvasTexture Object */, PSPU,  velocity, pulseLifetime, emitterlifetime, isActive = true, isAbsolute = true, offset = [0,0])
+    {
+        super(x,y,1,1,new canvasPannelTexture("", color),isAbsolute,isActive,offset);
+
+        this.PSPU = PSPU; // Pulses Spawned Per Update
+        this.velocity = velocity;
+        this.emitterlifetime = emitterlifetime;
+        this.pulseLifetime = pulseLifetime;
+
+        this.pulseChildren = [];
+    }
+
+    spawnParticle()
+    {
+        // Decimal
+        if(this.PSPU % 1 !== 0)
+        {
+            for(let i = 0; i < Math.floor(this.PSPU); i++)
+            {
+                const p = new pulse(
+                        this.x, 
+                        this.y, 
+                        0, 
+                        this.Texture.color,
+                        this.velocity,
+                        this.pulseLifetime, 
+                        this.alpha, 
+                        this.isAbsolute, 
+                        this.isActive, 
+                        this.offset
+                    );
+                p.alpha = this.alpha;
+
+                this.pulseChildren.push(p);
+            }
+
+            if(Math.round(Math.random() * 100) < (this.PSPU % 1) * 100)
+            {
+                const p = new pulse(
+                        this.x, 
+                        this.y, 
+                        0, 
+                        this.Texture.color,
+                        this.velocity,
+                        this.pulseLifetime, 
+                        this.alpha, 
+                        this.isAbsolute, 
+                        this.isActive, 
+                        this.offset
+                    );
+                p.alpha = this.alpha;
+
+                this.pulseChildren.push(p);
+            }
+        }
+        else
+        {
+            for(let i = 0; i < Math.floor(this.PSPU); i++)
+            {
+                const p = new pulse(
+                        this.x, 
+                        this.y, 
+                        0, 
+                        this.Texture.color,
+                        this.velocity,
+                        this.pulseLifetime, 
+                        this.alpha, 
+                        this.isAbsolute, 
+                        this.isActive, 
+                        this.offset
+                    );
+                p.alpha = this.alpha;
+
+                this.pulseChildren.push(p);
+            }
+        }
+    }
+
+    drawSelf(ctx)
+    {
+        this.emitterlifetime--;
+
+        if(this.active)
+        {
+            for(let i = this.pulseChildren.length - 1; i >= 0; i--)
+                {
+                    const p = this.pulseChildren[i];
+                    
+                    p.updateFrame();
+                    
+                    if(p.lifetime <= 0)
+                        this.pulseChildren.splice(i,1);
+                    else
+                        p.drawSelf(ctx);
+                }
+            }
+    }
+}
+
+
+export class pulse extends canvasElement
+{
+    constructor(x,y, radius, color, velocity, lifetime, alpha, isAbsolute, isActive = true, offset = [0,0])
+    {
+        super(x,y,0,0,new canvasPannelTexture("", color),isAbsolute,isActive,offset);
+
+        this.radius = radius
+        this.lifetime = lifetime;
+        this.alpha = alpha;
+
+        this.velocity = velocity;
+    }
+
+    updateFrame()
+    {
+        this.radius += this.velocity;
+        this.lifetime--;
+    }
+
+    drawSelf(ctx)
+    {
+        if(this.active)
+        {
+            ctx.globalAlpha = this.alpha;
+            ctx.beginPath();
+            ctx.fillStyle = this.Texture.color;
+            ctx.arc(this.x + this.offset[0], this.y + this.offset[1], this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+    }
+}
+
+
 export class particleEmitter extends canvasElement
 {
     constructor(x, y, particleSize, particleTexture/* Use CanvasTexture Object */, PSPU,  minVelocity, maxVelocity, particleLifetime, emitterlifetime, gravity = false, drag = 0, isActive = true, isAbsolute = true, offset = [0,0])
@@ -481,7 +618,6 @@ export class particleEmitter extends canvasElement
         this.particleLifetime = particleLifetime;
         this.gravity = gravity;
         this.drag = drag;
-
 
         this.particleChildren = [];
     }
@@ -599,4 +735,60 @@ export class particle extends canvasElement
 
         this.lifetime--;
     }
+}
+
+
+export class canvasLabel extends canvasElement // Labeling: Jew, Jew, Jew, Jew, Jew...
+{
+    constructor(x,y, sizeX, sizeY, Texture, isAbsolute, isActive = true, offset = [0,0])
+            {
+                super(x,y,sizeX,sizeY,Texture,isAbsolute,isActive,offset);
+            }
+
+            
+            drawSelf(ctx) 
+            {
+                if (this.Texture.text !== "" && this.active)
+                    {
+                        ctx.globalAlpha = this.alpha;
+
+                        const text = this.Texture.text;
+                        const paddingX = this.sizeX * 0.1; // 10% horizontal padding
+                        const paddingY = this.sizeY * 0.2; // vertical breathing room
+                        
+                        
+                        if (!text) return;
+                        
+                        const maxTextWidth = this.sizeX - paddingX * 2;
+                        let fontSize = Math.floor(this.sizeY * 0.45); // start large
+                        
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+
+                        if(this.Texture.color !== "" && this.Texture.color !== " " && this.Texture.color !== undefined)
+                        {
+                           ctx.fillStyle = this.Texture.color;
+                        }
+                        else
+                        {
+                            ctx.fillStyle = "black";
+                        }
+                        
+                        // Shrink-to-fit loop
+                        do
+                        {
+                            ctx.font = `${fontSize}px Arial`;
+                            fontSize--;
+                        }
+                        while (ctx.measureText(text).width > maxTextWidth && fontSize > 8);
+                        
+                        // Centered draw
+                        ctx.fillText(
+                            text,
+                            this.x + this.sizeX / 2,
+                            this.y + this.sizeY / 2
+                        );
+                        ctx.globalAlpha = 1;
+                    }
+            }
 }
