@@ -111,13 +111,14 @@
             var frame = 0;
             
                 // Set to 0 when Debug is Finished
-            var cigarettes = 1000001;
-            var upgradeCigarettes = 1000;
-            var premiumCigarettes = 1000;
+            var cigarettes = 0;
+            var upgradeCigarettes = 0;
+            var premiumCigarettes = 0;
             
             const gameState = 
             {
-                cigarettesGainMultiplier: 1
+                cigarettesGainMultiplier: 1,
+                generalCostReduction: 1
             };
 
             var cigarettesGain = 0;
@@ -149,6 +150,8 @@
 
             var ctx;
 
+
+            
 
             
 
@@ -459,9 +462,6 @@
                 {
                     if (premiumCigarettes >= 50) {
                         premiumCigarettes -= 50;
-                        WOFpanel.setActive(true);
-                        claimButton.setActive(false);
-                        prizeLabel.setActive(false);
                         spin(); 
                     }
                 }
@@ -526,7 +526,7 @@
                     {
                         velocityX = 0; // stop sliding
 
-                        if(cigarettes >= machineBaseCosts[i] * machineCostMultipliers[i])
+                        if(cigarettes >= Math.ceil((machineBaseCosts[i] * machineCostMultipliers[i]) / gameState["generalCostReduction"]))
                         {
                             // Super Cool Particle Test
                             currentActiveParticleEmitter.push(
@@ -550,7 +550,7 @@
                             UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
 
-                            cigarettes -= machineBaseCosts[i] * machineCostMultipliers[i];
+                            cigarettes -= Math.ceil((machineBaseCosts[i] * machineCostMultipliers[i]) / gameState["generalCostReduction"]);
                             upgradeCigarettes += 1;
 
                             switch(i)
@@ -632,7 +632,7 @@
 
                         for(let j = 0; j < 5; j++)
                         {
-                            BatchCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
+                            BatchCost += Math.ceil((machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j))) / gameState["generalCostReduction"]);
                         }
 
                         if(cigarettes > BatchCost)
@@ -711,7 +711,7 @@
 
                         for(let j = 0; j < 10; j++)
                         {
-                            StackCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
+                            StackCost += Math.ceil((machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j))) / gameState["generalCostReduction"]);
                         }
 
                         if(cigarettes > StackCost)
@@ -1236,8 +1236,8 @@
 
             
             // Camera Elements Only
-            UIManager.draw(ctx, false);
             AnimationManager.draw(ctx, false);
+            UIManager.draw(ctx, false);
 
 
             for(let i = 0; i < machineLevels.length; i++)
@@ -1246,7 +1246,29 @@
                 {
                     if(frame % 500 == 0)
                     {
-                        animatedCigarettes.push([machineX(i) + 190, 760 + 256 / 2 - 50, 0]);
+                        const cigProduction =  new canvasButton(
+                            machineX(i) + 190, 
+                            760 + 256 / 2 - 50, 
+                            64, 
+                            64,
+                            new canvasButtonTexture(cigarettesTexture, "", ""),
+                            false,
+                            true
+                        );
+
+                        cigProduction.zPosition = -1;
+                        UIManager.add(cigProduction);
+                        animatedCigarettes.push([cigProduction, 0]);
+
+                        cigProduction.onClick = function()
+                        {
+                            cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"] * 200;
+
+                            UIManager.elements.splice(UIManager.elements.indexOf(cigProduction),1),
+                            animatedCigarettes.splice(animatedCigarettes.indexOf(cigProduction), 1);
+                        }
+
+                        
                     }
                 }
             }
@@ -1255,18 +1277,18 @@
             animatedCigarettes.forEach(element => {
                 if(frame % Math.round(50 / 4) == 0)
                     {
-                        element[0] += 4;
+                        element[0].x += 4;
                     }
-                element[2]++; // Lifetime
-                if(element[2] > 1250)
+                element[1]++; // Lifetime
+                if(element[1] > 1250)
                 {
-                    element[1] += 1;
+                    element[0].y += 1;
                 }
-                if(element[2] > 1300)
+                if(element[1] > 1300)
                 {
+                    UIManager.elements.splice(UIManager.elements.indexOf(element[0]),1),
                     animatedCigarettes.splice(animatedCigarettes.indexOf(element), 1);
                 }
-                ctx.drawImage(cigarettesTexture, element[0], element[1], 64, 64);
                 });
 
                 
@@ -1294,8 +1316,8 @@
             ctx.restore();
 
             // Relative to Screen //
-            UIManager.draw(ctx, true);
             AnimationManager.draw(ctx, true);
+            UIManager.draw(ctx, true);
 
 
 
@@ -1408,7 +1430,7 @@
         {
             for(let i = 0; i < upgradeButtons.length; i++)
             {
-                if(cigarettes >  Math.ceil(machineBaseCosts[i] * machineCostMultipliers[i]) || upgradeButtons[i].Texture.text == "Free")
+                if(cigarettes >  Math.ceil((machineBaseCosts[i] * machineCostMultipliers[i]) / gameState["generalCostReduction"]) || upgradeButtons[i].Texture.text == "Free")
                 {
                     upgradeButtons[i].setAlpha(0.95);
                 }
@@ -1421,7 +1443,7 @@
 
                 for(let j = 0; j < 5; j++)
                 {
-                    BatchCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
+                    BatchCost += Math.ceil((machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j))) / gameState["generalCostReduction"]);
                 }
 
                 if(cigarettes > BatchCost)
@@ -1435,7 +1457,7 @@
 
                 for(let j = 5; j < 10; j++)
                 {
-                    BatchCost += Math.ceil(machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j)));
+                    BatchCost += Math.ceil((machineBaseCosts[i] * (machineCostMultipliers[i] * Math.pow(1.1, j))) / gameState["generalCostReduction"]);
                 }
 
                 if(cigarettes > BatchCost)
@@ -1535,7 +1557,7 @@
         {
             for(let i = 0; i < upgradeButtons.length; i++)
             {
-                const val = Math.ceil(machineBaseCosts[i] * machineCostMultipliers[i]);
+                const val = Math.ceil((machineBaseCosts[i] * machineCostMultipliers[i]) / gameState["generalCostReduction"]);
 
                 switch(true)
                 {
@@ -1673,6 +1695,10 @@ function drawPointer()
 
 function spin()
 {
+    WOFpanel.setActive(true);
+    claimButton.setActive(false);
+    prizeLabel.setActive(false);
+
     prizeClaimed = false;
 
     if(WOFspinning) return;

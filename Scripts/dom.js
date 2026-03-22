@@ -84,23 +84,23 @@ export const UIManager =
                 {
                     if(absolute)
                     {
-                        this.elements.forEach(element => 
+                        for (let i = this.elements.length - 1; i >= 0; i--) 
                         {
-                            if(element.isAbsolute)
+                            if(this.elements[i].isAbsolute)
                             {
-                                element.drawSelf(ctx);
+                                this.elements[i].drawSelf(ctx);
                             }
-                        });
+                        }
                     }
                     else
                     {
-                        this.elements.forEach(element => 
+                        for (let i = this.elements.length - 1; i >= 0; i--) 
                         {
-                            if(!element.isAbsolute)
+                            if(!this.elements[i].isAbsolute)
                             {
-                                element.drawSelf(ctx);
+                                this.elements[i].drawSelf(ctx);
                             }
-                        });    
+                        } 
                     }
                 }
             };

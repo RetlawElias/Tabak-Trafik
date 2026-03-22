@@ -1,6 +1,85 @@
 {
   "Upgrades": [
     {
+      "Name": "Tax Evasion 1",
+      "Cost": 50,
+      "Position": [700, 100],
+      "Size": [150, 50],
+      "ToolTip": "Your accounting-manager found a new way of saving costs in the monthly tax-statements of the company. \nMaybe he deserves a raise after this... \n\nIncrease: \n -5% Cost on all Upgrades \n\n Decrease: \n -50 Upgrade Points",
+      "Condition": [],
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "Name": "Tax Evasion 2",
+      "Cost": 100,
+      "Position": [700, 200],
+      "Size": [150, 50],
+      "ToolTip": "What a Steal! \nDid you know that this company has to give away a huge portion of it's profits towards society? Well not anymore! \n\nIncrease: \n -10% Cost on all Upgrades \n\n Decrease: \n -100 Upgrade Points",
+      "Condition": ["Tax Evasion 1"],
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.10
+        }
+      ]
+    },
+    {
+      "Name": "Tax Evasion 3",
+      "Cost": 125,
+      "Position": [700, 300],
+      "Size": [150, 50],
+      "ToolTip": "There is roumor spreading about your company not paying any Taxes. Lies! Who do they think they are! Do they know how hard it is to run a company like this one?! They'll see!\n\nIncrease: \n -15% Cost on all Upgrades \n\n Decrease: \n -125 Upgrade Points",
+      "Condition": ["Tax Evasion 2"],
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "Name": "Tax Evasion 4",
+      "Cost": 150,
+      "Position": [700, 400],
+      "Size": [150, 50],
+      "ToolTip": "It was one think when the public thought we were not paying taxes.. but greeting the FEDS at the doorstep to our offices is too much! That's it! We're moving to Hungary!\n\nIncrease: \n -20% Cost on all Upgrades \n\n Decrease: \n -150 Upgrade Points",
+      "Condition": ["Tax Evasion 3"],
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.20
+        }
+      ]
+    },
+    {
+      "Name": "Tax Evasion 5",
+      "Cost": 200,
+      "Position": [700, 500],
+      "Size": [150, 50],
+      "ToolTip": "Now i am not one to shame others for taking money from the oblivious. After all that is our entire business-model. But i believe true freedom can only be achieved when our company stops paying taxes all together. You in?\n\nIncrease: \n -25% Cost on all Upgrades \n\n Decrease: \n -200 Upgrade Points",
+      "Condition": ["Tax Evasion 4"],
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.25
+        }
+      ]
+    },
+
+
+
+
+    {
       "Name": "Upgrade Test 1",
       "Cost": 5,
       "Position": [-400, 100],
