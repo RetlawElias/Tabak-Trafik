@@ -23,14 +23,14 @@
             
             // Wheel of fortune prizes 
             const segments = [
-                "100 Coins",
-                "50 Coins",
+                "100 Cigarettes",
+                "50 Cigarettes",
                 "Nothing",
-                "200 Coins",
+                "200 Cigarettes",
                 "Spin Again",
-                "150 Coins",
+                "150 Cigarettes",
                 "JACKPOT",
-                "75 Coins"
+                "75 Cigarettes"
             ];
 
             const colors = [
@@ -59,7 +59,7 @@
 
             var partyInterval;
 
-
+            var WOFbutton;
 
             var audio = new Audio('Audio/Westward.wav');
             var jackpot = new Audio('Audio/winning.mp3');
@@ -403,6 +403,7 @@
                 claimButton = new canvasButton(myGameArea.canvas.width / 2 - 200, myGameArea.canvas.height - 300, 400, 200, new canvasButtonTexture("", "Yellow", "Claim!"), true, false);
 
                 techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(240,240,240,0.85)"), true);
+                WOFbutton = new canvasButton(myGameArea.canvas.width / 2 + 170, 0, 200, 50, new canvasButtonTexture("", "Purple", "Wheel of Fortune"), true);
                 WOFpanel = new canvasPannel(myGameArea.canvas.width / 2 - 500, 50, 1000, myGameArea.canvas.height - 100, new canvasPannelTexture("", "white"), true);
                 WOFpanel.alpha = 0.8;
                 
@@ -435,6 +436,7 @@
                     gameStarted = true;
                     startButton.active = false;
                     techtreeButton.setActive(true);
+                    WOFbutton.setActive(true);
                 }
 
 
@@ -453,6 +455,16 @@
                     }
                 }
                 
+                WOFbutton.onClick = function()
+                {
+                    if (premiumCigarettes >= 50) {
+                        premiumCigarettes -= 50;
+                        WOFpanel.setActive(true);
+                        claimButton.setActive(false);
+                        prizeLabel.setActive(false);
+                        spin(); 
+                    }
+                }
                 
                 audioButton.onClick = function()
                 {
@@ -481,7 +493,7 @@
                     
                 techtreeButton.setActive(false);
                 techtreePannel.setActive(false);
-
+                WOFbutton.setActive(false);
 
                 WOFpanel.addChild(claimButton);
                 WOFpanel.addChild(prizeLabel);
@@ -772,6 +784,7 @@
                     UIManager.add(upgradeButtons[i]);
                     UIManager.add(batchUpgradeButtons[i]);
                     UIManager.add(stackUpgradeButtons[i]);
+                    UIManager.add(WOFbutton);
 
                 }
             }
@@ -1003,13 +1016,6 @@
                             this.alert("DEBUG MODE DEACTIVATED!");
                         }
                     }
-                    else if(e.key === "p" && debug)
-                    {
-                        WOFpanel.setActive(true);
-                        claimButton.setActive(false);
-                        prizeLabel.setActive(false);
-                        spin();
-                    }
                 });
                     
                 window.addEventListener('resize', function() 
@@ -1132,6 +1138,8 @@
 
             audioButton.x = myGameArea.canvas.width - 60;
             audioButton.y = myGameArea.canvas.height - 60;
+
+            WOFbutton.x = myGameArea.canvas.width / 2 + 170;
         }
         
 
@@ -1685,10 +1693,25 @@ function detectPrize()
     let index = Math.floor((360 - normalized) / sliceDeg) % segments.length;
 
     let prize = segments[index];
-    console.log(prize);
     
-
-    prize = "JACKPOT";
+    switch(prize) {
+        case "100 Cigarettes":  cigarettes += 100;   break;
+        case "50 Cigarettes":   cigarettes += 50;    break;
+        case "150 Cigarettes":  cigarettes += 150;   break;
+        case "200 Cigarettes":  cigarettes += 200;   break;
+        case "75 Cigarettes":   cigarettes += 75;    break;
+        case "Spin Again":
+            prizeLabel.Texture.text = "Spin Again!";
+            prizeLabel.setActive(true);
+            setTimeout(() => spin(), 1000);
+            break;
+        case "Nothing":
+            break;
+        case "JACKPOT":
+            cigarettes += 10000;
+            break;
+    }
+    
 
     prizeLabel.Texture.color = "Black";
     prizeLabel.Texture.text = prize;
@@ -1696,7 +1719,7 @@ function detectPrize()
     claimButton.setActive(true);
 
 
-    if(prize == "JACKPOT")
+    if(prize === "JACKPOT")
     {
         partyInterval = setInterval(spawnAPulse, 10);
         prizeLabel.Texture.color = "Red";
@@ -1708,7 +1731,17 @@ function detectPrize()
         jackpot.volume = 0.5;
         jackpot.play();
     }
-    
+
+    if(prize === "Spin Again")
+    {
+        prizeLabel.Texture.color = "Black";
+        prizeLabel.Texture.text = "Spin Again!";
+        prizeLabel.setActive(true);
+        // no claimButton, wheel just re-spins automatically
+        setTimeout(() => spin(), 1000);
+        return;
+    }
+
 }
 
 function spawnAPulse()
