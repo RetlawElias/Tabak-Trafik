@@ -63,6 +63,14 @@
 
             var audio = new Audio('Audio/Westward.wav');
             var jackpot = new Audio('Audio/winning.mp3');
+            var Unbuyable = new Audio('Audio/Unbuyable.wav');
+            var Win = new Audio('Audio/Jackpot.wav');
+            var Buy = new Audio('Audio/Collect.wav');
+            var Collect = new Audio('Audio/DingDong.wav');
+            var Chirp = new Audio('Audio/Chirp.wav')
+
+
+
             
             
             let direction = 1;        // 1 = right, -1 = left
@@ -343,8 +351,13 @@
                             if(upgradeCigarettes >= obj.cost && !obj.isBought && isBuyable)
                             {
                                 upgradeCigarettes -= obj.cost;
+                                Buy.play();
                                 applyUpgrade(data.Upgrades[i].Effects);
                                 obj.isBought = true;
+                            }
+                            else
+                            {
+                                Unbuyable.play();
                             }
                                 
                         }
@@ -421,6 +434,7 @@
 
                 //OnClick Functions
                 techtreeButton.onClick = function() {
+                    Chirp.play();
                     techtreePannel.setActive(true);
                 };
 
@@ -548,7 +562,7 @@
                             );
 
                             UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
-
+                            Buy.play();
 
                             cigarettes -= Math.ceil((machineBaseCosts[i] * machineCostMultipliers[i]) / gameState["generalCostReduction"]);
                             upgradeCigarettes += 1;
@@ -620,6 +634,10 @@
                             machineCostMultipliers[i] *= 1.1;
                             machineLevels[i]++;
                         }
+                        else
+                        {
+                            Unbuyable.play();
+                        }
                     }
 
                     
@@ -658,7 +676,7 @@
 
                             UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
-
+                            Buy.play();
 
                             cigarettes -= BatchCost;
                             upgradeCigarettes += 5;
@@ -702,6 +720,10 @@
                             machineLevels[i] += 5;
                             machineCostMultipliers[i] *= Math.pow(1.1, 5);
                         }
+                        else
+                        {
+                            Unbuyable.play();
+                        }
                     }
 
                     stackUpgradeButtons[i].onClick = function()
@@ -738,6 +760,7 @@
 
                             UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
+                            Buy.play();
 
                             cigarettes -= StackCost;
                             upgradeCigarettes += 10;
@@ -778,6 +801,10 @@
 
                             machineLevels[i] += 10;
                             machineCostMultipliers[i] *= Math.pow(1.1, 10);
+                        }
+                        else
+                        {
+                            Unbuyable.play();
                         }
                     }
 
@@ -1263,6 +1290,7 @@
                         cigProduction.onClick = function()
                         {
                             cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"] * 200;
+                            Buy.play();
 
                             UIManager.elements.splice(UIManager.elements.indexOf(cigProduction),1),
                             animatedCigarettes.splice(animatedCigarettes.indexOf(cigProduction), 1);
@@ -1721,11 +1749,11 @@ function detectPrize()
     let prize = segments[index];
     
     switch(prize) {
-        case "100 Cigarettes":  cigarettes += 100;   break;
-        case "50 Cigarettes":   cigarettes += 50;    break;
-        case "150 Cigarettes":  cigarettes += 150;   break;
-        case "200 Cigarettes":  cigarettes += 200;   break;
-        case "75 Cigarettes":   cigarettes += 75;    break;
+        case "100 Cigarettes":  cigarettes += 100; Win.play();  break;
+        case "50 Cigarettes":   cigarettes += 50; Win.play();   break;
+        case "150 Cigarettes":  cigarettes += 150; Win.play();  break;
+        case "200 Cigarettes":  cigarettes += 200; Win.play();  break;
+        case "75 Cigarettes":   cigarettes += 75; Win.play();   break;
         case "Spin Again":
             prizeLabel.Texture.text = "Spin Again!";
             prizeLabel.setActive(true);
