@@ -1,6 +1,6 @@
 export class animation
 {
-    constructor(x, y, width, height, Frames, updateInterval, isActive, isAbsolute)
+    constructor(x, y, width, height, Frames, updateInterval, isActive, isAbsolute, loop = true)
     {
         this.x = x;
         this.y = y;
@@ -8,6 +8,7 @@ export class animation
         this.height = height;
         this.isAbsolute = isAbsolute;
         this.isActive = isActive;
+        this.loop = loop;
 
         this.Frames = Frames;
         this.updateInterval = updateInterval;
@@ -41,6 +42,10 @@ export class animation
                     if(this.step >= this.Frames.length)
                         {
                             this.step = 0;
+                            if(!this.loop)
+                            {
+                                this.setActive(false);
+                            }
                         }
                     }
                 }
@@ -121,11 +126,11 @@ export class animation
 }
 
 
-export function loadFrames(path, count) 
+export function loadFrames(path, count, steps = 1) 
 {
     const frames = [];
 
-    for (let i = 1; i < count + 1; i += 4)     
+    for (let i = 1; i < count + 1; i += steps)     
     {
         if(i >= 10)
         {

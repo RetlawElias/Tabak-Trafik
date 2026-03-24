@@ -53,8 +53,11 @@
             let WOFvelocity = 0;
             let WOFspinning = false;
 
-            const trumpAnimation = loadFrames("Textures/WinningAnimation", 138);
+            const smokinAnimation = loadFrames("Textures/SmokinAnimation", 152, 2);
+            const trumpAnimation = loadFrames("Textures/WinningAnimation", 138, 4);
             const anim = new animation(100, 100, 600, 800, trumpAnimation, 1, true, true);
+            const ani = new animation(0, 0, 400, 400, smokinAnimation, 1, true, true, false);
+            ani.setActive(false);
             anim.setActive(false);
 
             var partyInterval;
@@ -829,7 +832,7 @@
                 
 
                 AnimationManager.add(anim);
-
+                AnimationManager.add(ani);
 
 
                 inititialiseButtons();
@@ -1042,6 +1045,13 @@
                             debug = false;
                             this.alert("DEBUG MODE DEACTIVATED!");
                         }
+                    }
+                    else if(e.key === "+" && debug)
+                    {
+                        ani.width = canvas.width;
+                        ani.height = canvas.height;
+                        ani.setActive(true);
+                        ani.manipulateAnimation("setFrame", 0);
                     }
                 });
                     
