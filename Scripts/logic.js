@@ -1295,15 +1295,16 @@
 
                         cigProduction.zPosition = -1;
                         UIManager.add(cigProduction);
-                        animatedCigarettes.push([cigProduction, 0]);
+                        animatedCigarettes.push({obj: cigProduction, lifetime: 0});
 
                         cigProduction.onClick = function()
                         {
                             cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"] * 200;
                             Buy.play();
 
-                            UIManager.elements.splice(UIManager.elements.indexOf(cigProduction),1),
-                            animatedCigarettes.splice(animatedCigarettes.indexOf(cigProduction), 1);
+                            UIManager.elements.splice(UIManager.elements.indexOf(cigProduction),1);
+                            const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
+                            animatedCigarettes.splice(index, 1);
                         }
 
                         
@@ -1315,16 +1316,16 @@
             animatedCigarettes.forEach(element => {
                 if(frame % Math.round(50 / 4) == 0)
                     {
-                        element[0].x += 4;
+                        element.obj.x += 4;
                     }
-                element[1]++; // Lifetime
-                if(element[1] > 1250)
+                element.lifetime++; // Lifetime
+                if(element.lifetime > 1250)
                 {
-                    element[0].y += 1;
+                    element.obj.y += 1;
                 }
-                if(element[1] > 1300)
+                if(element.lifetime > 1300)
                 {
-                    UIManager.elements.splice(UIManager.elements.indexOf(element[0]),1),
+                    UIManager.elements.splice(UIManager.elements.indexOf(element.obj),1);
                     animatedCigarettes.splice(animatedCigarettes.indexOf(element), 1);
                 }
                 });
