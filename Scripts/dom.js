@@ -1,5 +1,4 @@
 
-
 // UI Manager for all UI-Elements
 export const UIManager = 
             {
@@ -16,6 +15,8 @@ export const UIManager =
                 {
                     for (let i = 0; i < this.elements.length; i++) 
                     {
+                        if(!this.elements[i].isAnimation)
+                        {
                         const element = this.elements[i];
 
                         if (!element.active) continue;
@@ -41,6 +42,7 @@ export const UIManager =
                             element.onClick();
                             return true;
                         }
+                        }
                     }
 
                     return false;
@@ -50,6 +52,8 @@ export const UIManager =
                 {
                     for (let i = this.elements.length - 1; i >= 0; i--) 
                     {
+                        if(!this.elements[i].isAnimation)
+                        {
                         const element = this.elements[i];
 
                         if (!element.active) continue;
@@ -74,6 +78,7 @@ export const UIManager =
                         {
                             element.onHover(ctx);
                             return true;
+                        }
                         }
                     }
 
@@ -102,11 +107,21 @@ export const UIManager =
                             }
                         } 
                     }
-                }
+                },
+
+
+                callUpdate(frame)
+                {
+                    this.elements.forEach(element => 
+                    {
+                        //Check if item is an animation
+                        if(element.isAnimation)
+                        {
+                            element.update(frame);
+                        }
+                    });
+                },
             };
-
-
-
 
 
             // camera object
@@ -114,50 +129,3 @@ export const UIManager =
                 x: 0,
                 y: 0
             };
-
-
-
-export const AnimationManager =
-{
-    elements: [],
-                
-    add(element) 
-    {
-        this.elements.push(element);
-    },
-
-    callUpdate(frame)
-    {
-        this.elements.forEach(element => 
-                        {
-  
-                                element.update(frame);
-                        });
-    },
-
-
-    draw(ctx, absolute) 
-                {
-                    if(absolute)
-                    {
-                        this.elements.forEach(element => 
-                        {
-                            if(element.isAbsolute)
-                            {
-                                element.drawSelf(ctx);
-                            }
-                        });
-                    }
-                    else
-                    {
-                        this.elements.forEach(element => 
-                        {
-                            if(!element.isAbsolute)
-                            {
-                                element.drawSelf(ctx);
-                            }
-                        });    
-                    }
-                }
-}
-

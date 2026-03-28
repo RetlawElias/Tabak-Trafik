@@ -1,7 +1,8 @@
-            import { UIManager, camera, AnimationManager} from "./dom.js";
+            import { UIManager, camera} from "./dom.js";
             import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, 
-                     particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip, canvasLabel, pulseEmitter, pulse} from "./RetlawsCoolCanvasControls.js";
-            import { animation, loadFrames } from "./animationMaster.js";
+                     particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip, canvasLabel, pulseEmitter, 
+                     pulse, canvasAnimation } from "./RetlawsCoolCanvasControls.js";
+            import { loadFrames } from "./animationMaster.js";
 
 
             document.addEventListener("mousemove", updateCursorPosition);
@@ -53,12 +54,11 @@
             let WOFvelocity = 0;
             let WOFspinning = false;
 
-            const smokinAnimation = loadFrames("Textures/SmokinAnimation", 152, 2);
-            const trumpAnimation = loadFrames("Textures/WinningAnimation", 138, 4);
-            const anim = new animation(100, 100, 600, 800, trumpAnimation, 1, true, true);
-            const ani = new animation(0, 0, 400, 400, smokinAnimation, 1, true, true, false);
-            ani.setActive(false);
-            anim.setActive(false);
+            const smokinAnimationFrames = loadFrames("Textures/SmokinAnimation", 152, 1);
+            const trumpAnimationFrames = loadFrames("Textures/WinningAnimation", 138, 2);
+
+            let trumpAnimation;
+            let smokinAnimation;
 
             var partyInterval;
 
@@ -81,8 +81,6 @@
             let baseOffset = 0;
             let startScreenFadingIterator = 0;
             let preGameLoadupIterator = 250;
-
-            var techtreeMap = {};
             
             
             let lastTime = performance.now();
@@ -99,7 +97,6 @@
             let velocityY = 0;    
 
             let startScreenAnimationIterator = 0;
-            let draggingTolerance = 5;
             
             let isDragging = false;
             let clientClick = false;
@@ -262,7 +259,7 @@
                 new BackgroundLayer(fabrik, 1.5, -45),
             ];
 
-
+            
 
             
             camera.x = Math.max(0,Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
@@ -412,7 +409,7 @@
 
 
 
-            function inititialiseButtons()
+            function initialiseUI()
             {
 
                 //Assignment
@@ -433,6 +430,14 @@
 
                 prizeLabel = new canvasLabel(canvas.width / 2 - 150, 100, 300, 150, new canvasButtonTexture("", "", "Winnings"), true, true);
                 
+                trumpAnimation = new canvasAnimation(100, 100, 600, 800, trumpAnimationFrames, 1, true, true);
+                smokinAnimation = new canvasAnimation(0, 0, 400, 400, smokinAnimationFrames, 1, true, true, false);
+
+                trumpAnimation.zPosition = -2;
+
+                trumpAnimation.setActive(false);
+                smokinAnimation.setActive(false);
+
 
 
                 //OnClick Functions
@@ -525,6 +530,8 @@
                 UIManager.add(WOFpanel);
                 UIManager.add(techtreeButton);
 
+                UIManager.add(trumpAnimation);
+                UIManager.add(smokinAnimation);
                 
 
 
@@ -624,14 +631,14 @@
                                 //ctx.drawImage(ConveyerFrame4, 390 + 1100 * i, 760, 512, 256);
                                 //ctx.drawImage(BoxFrame1, machineX(i) + 535, 830, 256, 256);
 
-                                var machineAnimation = new animation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
-                                var conveyerAnimation = new animation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
-                                var boxAnimation = new animation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
-                                var cigaretAnimation = new animation(machineX(i));
+                                var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
+                                var conveyerAnimation = new canvasAnimation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
+                                var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
+                                var cigaretAnimation = new canvasAnimation(machineX(i));
 
-                                AnimationManager.add(machineAnimation);
-                                AnimationManager.add(conveyerAnimation);
-                                AnimationManager.add(boxAnimation);
+                                UIManager.add(machineAnimation);
+                                UIManager.add(conveyerAnimation);
+                                UIManager.add(boxAnimation);
                             }
 
                             machineCostMultipliers[i] *= 1.1;
@@ -827,15 +834,9 @@
             {
                 myGameArea.start();
 
-                
-
-                
-
-                AnimationManager.add(anim);
-                AnimationManager.add(ani);
 
 
-                inititialiseButtons();
+                initialiseUI();
 
                 await fetchTechtree('Techtree.json');
 
@@ -1048,10 +1049,17 @@
                     }
                     else if(e.key === "+" && debug)
                     {
-                        ani.width = canvas.width;
-                        ani.height = canvas.height;
-                        ani.setActive(true);
-                        ani.manipulateAnimation("setFrame", 0);
+                        smokinAnimation.sizeX = canvas.width;
+                        smokinAnimation.sizeY = canvas.height;
+                        smokinAnimation.setActive(true);
+                        smokinAnimation.manipulateAnimation("setFrame", 0);
+                    }
+                    else if(e.key === "-" && debug)
+                    {
+                        trumpAnimation.setActive(true);
+                        trumpAnimation.manipulateAnimation("teleport", [-800, canvas.height / 2 - 400]);
+                        trumpAnimation.manipulateAnimation("setFrame", 0);
+                        trumpAnimation.behaviour = [["move", 2, 0], ["killSelfOnPositionX", canvas.width]];
                     }
                 });
                     
@@ -1131,6 +1139,7 @@
                     //element.updateOffset([techtreePanelOffsetX, techtreePanelOffsetY])
                 });// panel handles the positioning 
 
+
             }   
             
 
@@ -1191,6 +1200,8 @@
             
             frame += frameIncrements;
 
+            UIManager.callUpdate(frame);
+
             if(techtreePannel.active && techtreePannel.containsPoint(cursorX, cursorY))
             {
                 uiBlockingInput = true; // if mouse is over the panel, then block input to the world (buttons will still work)
@@ -1250,7 +1261,7 @@
 
 
             update();
-            AnimationManager.callUpdate(frame);
+            UIManager.callUpdate(frame);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
@@ -1273,7 +1284,6 @@
 
             
             // Camera Elements Only
-            AnimationManager.draw(ctx, false);
             UIManager.draw(ctx, false);
 
 
@@ -1355,7 +1365,6 @@
             ctx.restore();
 
             // Relative to Screen //
-            AnimationManager.draw(ctx, true);
             UIManager.draw(ctx, true);
 
 
@@ -1429,7 +1438,17 @@
                 });
                 
                 ctx.fillText("Particle Amount: " + particleAmount, 20, 140);
-                ctx.fillText("Active Animations: " + AnimationManager.elements.length, 20, 170);
+
+
+                let CAA = 0;
+                UIManager.elements.forEach(element => {
+                        if(element.step && element.active)
+                        {
+                            CAA++;
+                        }
+                    }
+                );
+                ctx.fillText("Active Animations: " + CAA, 20, 170);
             }
             
             
@@ -1789,10 +1808,10 @@ function detectPrize()
         partyInterval = setInterval(spawnAPulse, 10);
         prizeLabel.Texture.color = "Red";
         prizeLabel.Texture.text = "!!! JACKPOT !!!";
-        anim.setActive(true);
-        anim.manipulateAnimation("teleport", [-800, canvas.height / 2 - 400]);
-        anim.manipulateAnimation("setFrame", 0);
-        anim.behaviour = [["move", 4, 0], ["killSelfOnPositionX", canvas.width]];
+        trumpAnimation.setActive(true);
+        trumpAnimation.manipulateAnimation("teleport", [-800, canvas.height / 2 - 400]);
+        trumpAnimation.manipulateAnimation("setFrame", 0);
+        trumpAnimation.behaviour = [["move", 2, 0], ["killSelfOnPositionX", canvas.width]];
         jackpot.volume = 0.5;
         jackpot.play();
     }

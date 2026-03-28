@@ -82,7 +82,8 @@ export class canvasElement
         this.active = isActive;
         this.offset = offset;
         this.alpha = 1;
-        
+        this.isAnimation = false;
+
         canvasElement.zPriority++;
         this.zPosition = canvasElement.zPriority;
         
@@ -502,6 +503,7 @@ export class pulseEmitter extends canvasElement
                         this.offset
                     );
                 p.alpha = this.alpha;
+                p.zPosition = (Math.random() * 1000 - 500);
 
                 this.pulseChildren.push(p);
             }
@@ -521,6 +523,7 @@ export class pulseEmitter extends canvasElement
                         this.offset
                     );
                 p.alpha = this.alpha;
+                p.zPosition = (Math.random() * 1000 - 500);
 
                 this.pulseChildren.push(p);
             }
@@ -542,6 +545,7 @@ export class pulseEmitter extends canvasElement
                         this.offset
                     );
                 p.alpha = this.alpha;
+                p.zPosition = (Math.random() * 1000 - 500);
 
                 this.pulseChildren.push(p);
             }
@@ -791,4 +795,129 @@ export class canvasLabel extends canvasElement // Labeling: Jew, Jew, Jew, Jew, 
                         ctx.globalAlpha = 1;
                     }
             }
+}
+
+
+
+
+export class canvasAnimation extends canvasElement
+{
+    constructor(x, y, width, height, Frames, updateInterval, isActive, isAbsolute, loop = true)
+    {
+        super(x,y,width,height,new canvasPannelTexture("", ""), isAbsolute, isActive);
+        this.loop = loop;
+
+        this.isAnimation = true;
+        this.Frames = Frames;
+        this.updateInterval = updateInterval;
+        this.step = 0;
+        this.behaviour = [];
+    }
+
+    setActive(active)
+    {
+        this.active = active;
+    }
+
+    setAlpha(alpha)
+    {
+        this.alpha = alpha;
+    }
+
+    update(frame)
+    {
+        if(this.active)
+        {
+
+            this.updateBehaviour(frame);
+            
+            
+            
+            if(frame % this.updateInterval == 0)
+                {
+                    this.step++;
+                    if(this.step >= this.Frames.length)
+                        {
+                            this.step = 0;
+                            if(!this.loop)
+                            {
+                                this.setActive(false);
+                            }
+                        }
+                    }
+                }
+        }
+
+    manipulateAnimation(command, values)
+    {
+        try
+        {
+        switch(command)
+        {
+            case "move":
+                this.x += values[0];
+                this.y += values[1];
+                break;
+            case "teleport":
+                this.x = values[0];
+                this.y = values[1];
+                break;
+            case "setFrame":
+                this.step = values;
+                break;
+            case "setUpdateFrequency":
+                this.updateInterval = values;
+        }
+        }
+        catch
+        {
+            console.error("Critical Error in Animation-Command");
+        }
+    }
+
+
+    updateBehaviour(frame)
+    {
+        this.behaviour.forEach(behaviour => {
+            switch(behaviour[0])
+            {
+            case "move":
+                this.x += behaviour[1];
+                this.y += behaviour[2];
+                break;
+            case "teleport":
+                this.x = behaviour[1];
+                this.y = behaviour[2];
+                break;
+            case "conditionTeleportX":
+                if(frame % behaviour[1] == 0)
+                {
+                    this.x = behaviour[1];
+                }
+                break;
+            case "conditionTeleportY":
+                if(frame % behaviour[1] == 0)
+                {
+                    this.y = behaviour[1];
+                }
+                break;
+            case "killSelfOnPositionX":
+                if(this.x >= behaviour[1])
+                {
+                    this.setActive(false);
+                }
+                break;
+            }
+        })
+    }
+
+    drawSelf(ctx)
+    {
+        if(this.active)
+        {
+            ctx.globalAlpha = this.alpha;
+            ctx.drawImage(this.Frames[this.step], this.x, this.y, this.sizeX, this.sizeY);
+            ctx.globalAlpha = 1;
+        }
+    }
 }
