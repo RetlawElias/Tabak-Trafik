@@ -74,8 +74,18 @@
 
 
 
+            const EScenes = Object.freeze(
+                { 
+                    INTRO: 0, 
+                    FACTORY: 1, 
+                    OFFICE: 2
+                }
+            );
             
-            
+            let currentActiveScene = EScenes.INTRO;
+
+
+
             let direction = 1;        // 1 = right, -1 = left
             let range = 20;           // max displacement in pixels
             let baseOffset = 0;
@@ -459,6 +469,7 @@
                 startButton.onClick = function()
                 {
                     gameStarted = true;
+                    currentActiveScene = EScenes.FACTORY;
                     startButton.active = false;
                     techtreeButton.setActive(true);
                     WOFbutton.setActive(true);
@@ -727,6 +738,26 @@
                                     break;
                             }
 
+                            if(machineLevels[i] == 0)
+                            {
+                                // Machine: machineX(i);
+                                // Conveyer: machineX(i) + 200;
+                                // Box: machineX(i) + ?;
+
+                                //ctx.drawImage(MachineFrame1, machineX(i), 512, 256, 512);
+                                //ctx.drawImage(ConveyerFrame4, 390 + 1100 * i, 760, 512, 256);
+                                //ctx.drawImage(BoxFrame1, machineX(i) + 535, 830, 256, 256);
+
+                                var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
+                                var conveyerAnimation = new canvasAnimation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
+                                var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
+                                var cigaretAnimation = new canvasAnimation(machineX(i));
+
+                                UIManager.add(machineAnimation);
+                                UIManager.add(conveyerAnimation);
+                                UIManager.add(boxAnimation);
+                            }
+
                             machineLevels[i] += 5;
                             machineCostMultipliers[i] *= Math.pow(1.1, 5);
                         }
@@ -807,6 +838,26 @@
                                 case 9:
                                     cigarettesGain += 10.0 * 10;
                                     break;
+                            }
+
+                            if(machineLevels[i] == 0)
+                            {
+                                // Machine: machineX(i);
+                                // Conveyer: machineX(i) + 200;
+                                // Box: machineX(i) + ?;
+
+                                //ctx.drawImage(MachineFrame1, machineX(i), 512, 256, 512);
+                                //ctx.drawImage(ConveyerFrame4, 390 + 1100 * i, 760, 512, 256);
+                                //ctx.drawImage(BoxFrame1, machineX(i) + 535, 830, 256, 256);
+
+                                var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
+                                var conveyerAnimation = new canvasAnimation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
+                                var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
+                                var cigaretAnimation = new canvasAnimation(machineX(i));
+
+                                UIManager.add(machineAnimation);
+                                UIManager.add(conveyerAnimation);
+                                UIManager.add(boxAnimation);
                             }
 
                             machineLevels[i] += 10;
@@ -1115,6 +1166,12 @@
 
             function update() 
             {
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle"; // center aint a valid value here...lovely javascript
+                ctx.font = "20px Arial";
+                ctx.strokeStyle = "Black";
+                ctx.fillStyle = "Black";
+
                 if (!isDragging) 
                 {
                     velocityX *= 0.92;
@@ -1139,7 +1196,8 @@
                     //element.updateOffset([techtreePanelOffsetX, techtreePanelOffsetY])
                 });// panel handles the positioning 
 
-
+                closeButton.x = techtreePannel.x + techtreePannel.sizeX - 35;
+                closeButton.y = techtreePannel.y + 5;
             }   
             
 
@@ -1175,125 +1233,57 @@
             startButton.sizeX = myGameArea.canvas.width / 4;
             startButton.sizeY = myGameArea.canvas.height / 4;
 
-
-            techtreeButton.x = myGameArea.canvas.width / 2 - 150;
-
-
             techtreePannel.sizeX = myGameArea.canvas.width - 100;
             techtreePannel.sizeY = myGameArea.canvas.height - 100;
-
+            
             audioButton.x = myGameArea.canvas.width - 60;
             audioButton.y = myGameArea.canvas.height - 60;
-
+            
+            
+            techtreeButton.x = myGameArea.canvas.width / 2 - 150;
             WOFbutton.x = myGameArea.canvas.width / 2 + 170;
         }
         
 
 
 
-
-        // Update Loop
-        function updateGameArea()
+        function spawnCigarettesOnConveyer()
         {
-            const now = performance.now();
-            const dt = (now - lastTime) / 1000; // seconds
-            
-            frame += frameIncrements;
-
-            UIManager.callUpdate(frame);
-
-            if(techtreePannel.active && techtreePannel.containsPoint(cursorX, cursorY))
-            {
-                uiBlockingInput = true; // if mouse is over the panel, then block input to the world (buttons will still work)
-            } 
-            else
-            {
-                uiBlockingInput = false;
-            }
-  
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            closeButton.x = techtreePannel.x + techtreePannel.sizeX - 35;
-            closeButton.y = techtreePannel.y + 5;
-
-            // Intro Sequence
-            if(!gameStarted)
-            {
-                lastTime = now;
-                baseOffset += direction * dt;
-                
-                
-                if (Math.abs(baseOffset) > range) 
-                {
-                    direction *= -1;
-                }
-                
-
-                
-                if(preGameLoadupIterator > 0 && preGameLoadupIterator < 150)
-                {
-                    preGameLoadupIterator--;
-                    layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
-                    layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
-                }
-                else if(preGameLoadupIterator < 150)
-                {
-                    startScreenFadingIterator++;
-                    layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
-                    layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
-                    drawStartButton();
-                    UIManager.draw(ctx, true);
-                }
-                else
-                {
-                    layers.forEach(layer => layer.update(direction, dt, 150));
-                    layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
-                    preGameLoadupIterator--;
-                }
-                
-
-
-                startScreenAnimationIterator++;
-                clientClick = false;
-                return;
-            }
-            
-
-
-            update();
-            UIManager.callUpdate(frame);
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-            ctx.translate(-camera.x, -camera.y);
-
-
-            cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"];
-
-
-
-
-            // Relative to Camera //
-            drawBackground(ctx);
-            drawButtonsAndLabels();
-
-
-
-            
-        
-
-            
-            // Camera Elements Only
-            UIManager.draw(ctx, false);
-
-
             for(let i = 0; i < machineLevels.length; i++)
             {
                 if(machineLevels[i] > 0)
                 {
                     if(frame % 500 == 0)
                     {
-                        const cigProduction =  new canvasButton(
+                        if(Math.random() * 100 <= 1 + 0.1 * machineLevels[i])
+                        {
+                            const cigProduction =  new canvasButton(
+                            machineX(i) + 190, 
+                            760 + 256 / 2 - 50, 
+                            64, 
+                            64,
+                            new canvasButtonTexture(premiumCigarettesTexture, "", ""),
+                            false,
+                            true
+                            );
+
+                            cigProduction.zPosition = -1;
+                            UIManager.add(cigProduction);
+                            animatedCigarettes.push({obj: cigProduction, lifetime: 0});
+                        
+                            cigProduction.onClick = function()
+                            {
+                                premiumCigarettes += 1 * (i + 1);
+                                Buy.play();
+                            
+                                UIManager.elements.splice(UIManager.elements.indexOf(cigProduction),1);
+                                const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
+                                animatedCigarettes.splice(index, 1);
+                            }
+                        }
+                        else
+                        {
+                            const cigProduction =  new canvasButton(
                             machineX(i) + 190, 
                             760 + 256 / 2 - 50, 
                             64, 
@@ -1301,28 +1291,49 @@
                             new canvasButtonTexture(cigarettesTexture, "", ""),
                             false,
                             true
-                        );
+                            );
 
-                        cigProduction.zPosition = -1;
-                        UIManager.add(cigProduction);
-                        animatedCigarettes.push({obj: cigProduction, lifetime: 0});
-
-                        cigProduction.onClick = function()
-                        {
-                            cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"] * 200;
-                            Buy.play();
-
-                            UIManager.elements.splice(UIManager.elements.indexOf(cigProduction),1);
-                            const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
-                            animatedCigarettes.splice(index, 1);
-                        }
-
+                            cigProduction.zPosition = -1;
+                            UIManager.add(cigProduction);
+                            animatedCigarettes.push({obj: cigProduction, lifetime: 0});
                         
+                            cigProduction.onClick = function()
+                            {
+                                cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"] * 200;
+                                Buy.play();
+                            
+                                UIManager.elements.splice(UIManager.elements.indexOf(cigProduction),1);
+                                const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
+                                animatedCigarettes.splice(index, 1);
+                            }
+                        }
                     }
                 }
             }
+        }
 
 
+        function particleGarbageCollector()
+        {
+            for(let i = currentActiveParticleEmitter.length - 1; i >= 0; i--) // so particles appear correctly
+            {
+                if(currentActiveParticleEmitter[i].emitterlifetime > 0)
+                {
+                    currentActiveParticleEmitter[i].spawnParticle();
+                }
+                else if(currentActiveParticleEmitter[i].particleChildren && currentActiveParticleEmitter[i].particleChildren.length == 0)
+                {
+                    currentActiveParticleEmitter.splice(i, 1);
+                }
+                else if(currentActiveParticleEmitter[i].pulseChildren && currentActiveParticleEmitter[i].pulseChildren.length == 0)
+                {
+                    currentActiveParticleEmitter.splice(i, 1);
+                }
+            }
+        }
+
+        function moveCigarettesAlongConveyer()
+        {
             animatedCigarettes.forEach(element => {
                 if(frame % Math.round(50 / 4) == 0)
                     {
@@ -1339,82 +1350,149 @@
                     animatedCigarettes.splice(animatedCigarettes.indexOf(element), 1);
                 }
                 });
+        }
 
+
+        function drawIntroScene()
+        {
+            const now = performance.now();
+            const dt = (now - lastTime) / 1000; // seconds
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if(!gameStarted)
+                    {
+                        lastTime = now;
+                        baseOffset += direction * dt;
+                
+                
+                        if (Math.abs(baseOffset) > range) 
+                        {
+                            direction *= -1;
+                        }
                 
 
-            
-            for(let i = currentActiveParticleEmitter.length - 1; i >= 0; i--) // so particles appear correctly
-            {
-                if(currentActiveParticleEmitter[i].emitterlifetime > 0)
-                {
-                    currentActiveParticleEmitter[i].spawnParticle();
-                }
-                else if(currentActiveParticleEmitter[i].particleChildren && currentActiveParticleEmitter[i].particleChildren.length == 0)
-                {
-                    currentActiveParticleEmitter.splice(i, 1);
-                }
-                else if(currentActiveParticleEmitter[i].pulseChildren && currentActiveParticleEmitter[i].pulseChildren.length == 0)
-                {
-                    currentActiveParticleEmitter.splice(i, 1);
-                }
-            }
+                
+                        if(preGameLoadupIterator > 0 && preGameLoadupIterator < 150)
+                        {
+                            preGameLoadupIterator--;
+                            layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
+                            layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
+                        }
+                        else if(preGameLoadupIterator < 150)
+                        {
+                            startScreenFadingIterator++;
+                            layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
+                            layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
+                            drawStartButton();
+                            UIManager.draw(ctx, true);
+                        }
+                        else
+                        {
+                            layers.forEach(layer => layer.update(direction, dt, 150));
+                            layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
+                            preGameLoadupIterator--;
+                        }
+                
+                        startScreenAnimationIterator++;
+                        clientClick = false;
+                    }
+        }
 
+
+
+
+        // Update Loop
+        function updateGameArea()
+        {
+            update();
+            frame += frameIncrements;
+
+
+            // Update all Animations
+            UIManager.callUpdate(frame);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+
+
+            // Only for World-Positioned Elements
+            switch(currentActiveScene)
+            {
+                case EScenes.INTRO:
+                    break;
+                case EScenes.FACTORY: 
+                    drawBackground(ctx);
+                    drawButtonsAndLabels();
+
+                    // Draw all RCCC.js created Elements (Absolute)
+                    UIManager.draw(ctx, false);
+
+                    // Cigarettes-Conveyer machanic
+                    spawnCigarettesOnConveyer();
+                    moveCigarettesAlongConveyer();
+            
+                    // Kill unused Emitter and Particles
+                    particleGarbageCollector();
+                    break;
+            }
 
 
 
             ctx.restore();
 
-            // Relative to Screen //
-            UIManager.draw(ctx, true);
 
 
+            // Only for Camera-Positioned Elements
+            switch(currentActiveScene)
+            {
+                case EScenes.INTRO:
+                    drawIntroScene();
+                    return;
+                case EScenes.FACTORY: 
+                    // Draw all RCCC.js created Elements (!Absolute)
+                    UIManager.draw(ctx, true);
+
+                    handleWheelOfFortune();
+                    
+                    drawCurrencyPanel();
+            
+                    updateUpgradeButtons();
+
+                    handleTechtreeSpecificBehaviour();
+
+                    cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"];
+                    break;
+            }
+
+
+
+            displayDebugInfo();
 
             
-            if(WOFspinning || !prizeClaimed)
-            {
-
-                WOFrotation += WOFvelocity;
-                WOFvelocity *= 0.985;
-
-                if(WOFvelocity < 0.0002 && !prizeClaimed && WOFspinning)
-                {
-                    WOFspinning = false;
-                    detectPrize();
-                }
-                
-                drawWheel();
-            }
+            
 
 
+            // Hover-Check (Speciffically for that bitch of a start-button)
+            UIManager.onHoverCheck(cursorX, cursorY, ctx);
+
+            clientClick = false;
+        }
 
 
-
-
-
-            if(techtreePannel.active)
-            {
-                techtreeUpgrades.forEach(element => 
-                {
-                    if(inBoundChecker(element, techtreePannel))
-                    {
-                        element.drawConnections(ctx, techtreeUpgrades);
-                    }
-                });
-            }
-
-        
-
-
-            ctx.textAlign = "left";
-            ctx.textBaseline = "middle"; // center aint a valid value here...lovely javascript
-            ctx.font = "20px Arial";
-            ctx.strokeStyle = "Black";
-            ctx.fillStyle = "Black";
-
-
+        function displayDebugInfo()
+        {
             // Debug Info
             if(debug)
-            {                
+            {  
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle"; // center aint a valid value here...lovely javascript
+                ctx.font = "20px Arial";
+                ctx.strokeStyle = "Black";
+                ctx.fillStyle = "Black";
+
+                          
                 ctx.fillText("Frame: " + frame, 20, 20);
                 ctx.fillText(mousePosition, 20, 50);
                 ctx.fillText("TechtreeOffset X: " + techtreePanelOffsetX + ", Y: " + techtreePanelOffsetY, 20, 80);
@@ -1450,37 +1528,6 @@
                 );
                 ctx.fillText("Active Animations: " + CAA, 20, 170);
             }
-            
-            
-            
-            drawCurrencyPanel();
-            
-            updateUpgradeButtons();
-            
-            if (techtreePannel.active)
-            {
-
-                techtreeUpgrades.forEach(el =>
-                    el.updateOffset(
-                        techtreePannel.x,
-                        techtreePannel.y,
-                        techtreePannel.sizeX,
-                        techtreePannel.sizeY
-                    ),
-
-                    ctx.fillRect(
-                        techtreePannel.x + techtreePannel.sizeX - 20, 
-                        techtreePannel.y + techtreePannel.sizeY - 20,
-                        20,
-                        20
-                    )
-                );
-            }
-
-            UIManager.onHoverCheck(cursorX, cursorY, ctx);
-
-
-            clientClick = false;
         }
 
 
@@ -1531,6 +1578,36 @@
         }
 
 
+        function handleTechtreeSpecificBehaviour()
+        {
+            if(techtreePannel.active)
+            {
+                techtreeUpgrades.forEach(element => 
+                {
+                    if(inBoundChecker(element, techtreePannel))
+                    {
+                        element.drawConnections(ctx, techtreeUpgrades);
+                    }
+                });
+
+                techtreeUpgrades.forEach(el =>
+                    el.updateOffset(
+                        techtreePannel.x,
+                        techtreePannel.y,
+                        techtreePannel.sizeX,
+                        techtreePannel.sizeY
+                    ),
+
+                    ctx.fillRect(
+                        techtreePannel.x + techtreePannel.sizeX - 20, 
+                        techtreePannel.y + techtreePannel.sizeY - 20,
+                        20,
+                        20
+                    )
+                );
+            }
+        }
+
         function drawStartButton()
         {
             //Start-Button
@@ -1575,7 +1652,7 @@
 
         function drawCurrencyPanel()
         {
-             ctx.fillStyle = "rgba(255,255,255,0.33)";
+            ctx.fillStyle = "rgba(255,255,255,0.33)";
             ctx.fillRect(canvas.width + CIGARETTESPANELOFFSET + 75, 0, 175, 200);
 
             ctx.drawImage(cigarettesTexture, canvas.width + CIGARETTESPANELOFFSET + 200, 5, 50, 50);
@@ -1583,6 +1660,9 @@
             ctx.drawImage(premiumCigarettesTexture, canvas.width + CIGARETTESPANELOFFSET + 200, 125, 50, 50);
             ctx.fillStyle = "rgba(0,0,0,1)";
             ctx.font = "28px Titanic";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle"; // center aint a valid value here...lovely javascript
+            ctx.strokeStyle = "Black";
 
 
             switch (true) 
@@ -1693,43 +1773,44 @@
             const cy = canvas.height / 2;
             const radius = 200;
 
-    ctx.save();
+            ctx.save();
 
-    ctx.translate(cx,cy);
-    ctx.rotate(WOFrotation);
-    ctx.translate(-cx,-cy);
+            ctx.translate(cx,cy);
+            ctx.rotate(WOFrotation);
+            ctx.translate(-cx,-cy);
 
-    for(let i=0;i<segments.length;i++){
+            for(let i=0;i<segments.length;i++)
+            {
 
-        let start = slice*i;
-        let end = slice*(i+1);
+                let start = slice*i;
+                let end = slice*(i+1);
 
-        ctx.beginPath();
-        ctx.moveTo(cx,cy);
-        ctx.arc(cx,cy,radius,start,end);
-        ctx.closePath();
+                ctx.beginPath();
+                ctx.moveTo(cx,cy);
+                ctx.arc(cx,cy,radius,start,end);
+                ctx.closePath();
 
-        ctx.fillStyle = colors[i];
-        ctx.fill();
+                ctx.fillStyle = colors[i];
+                ctx.fill();
 
-        ctx.stroke();
+                ctx.stroke();
+                
+                ctx.save();
 
-        ctx.save();
+                ctx.translate(cx,cy);
+                ctx.rotate(start + slice/2);
+                ctx.textAlign="right";
+                ctx.fillStyle="white";
+                ctx.font="16px Arial";
+                ctx.fillText(segments[i], radius-10,5);
 
-        ctx.translate(cx,cy);
-        ctx.rotate(start + slice/2);
-        ctx.textAlign="right";
-        ctx.fillStyle="white";
-        ctx.font="16px Arial";
-        ctx.fillText(segments[i], radius-10,5);
+                ctx.restore();
+            }
 
-        ctx.restore();
-    }
-
-    ctx.restore();
-
-    drawPointer();
-}
+            ctx.restore();
+            
+            drawPointer();
+        }
 
 
 function drawPointer()
@@ -1845,4 +1926,22 @@ function spawnAPulse()
             );
             currentActiveParticleEmitter[currentActiveParticleEmitter.length-1].alpha = 0.1;
             UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+}
+
+function handleWheelOfFortune()
+{
+    if(WOFspinning || !prizeClaimed)
+            {
+
+                WOFrotation += WOFvelocity;
+                WOFvelocity *= 0.985;
+
+                if(WOFvelocity < 0.0002 && !prizeClaimed && WOFspinning)
+                {
+                    WOFspinning = false;
+                    detectPrize();
+                }
+                
+                drawWheel();
+            }
 }
