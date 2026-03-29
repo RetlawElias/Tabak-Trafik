@@ -108,7 +108,7 @@ export class canvasElement
 
     onHover()
     {
-        console.log("Hovered element: " + this);
+        //console.log("Hovered element: " + this);
     }
 
     // Automated by dom.js/UIManager/draw()

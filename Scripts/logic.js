@@ -1,4 +1,4 @@
-            import { UIManager, camera} from "./dom.js";
+            import { UIManager, camera, SceneManager} from "./dom.js";
             import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, 
                      particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip, canvasLabel, pulseEmitter, 
                      pulse, canvasAnimation } from "./RetlawsCoolCanvasControls.js";
@@ -76,13 +76,20 @@
 
             const EScenes = Object.freeze(
                 { 
-                    INTRO: 0, 
-                    FACTORY: 1, 
-                    OFFICE: 2
+                    INTRO: "0", 
+                    FACTORY: "1", 
+                    OFFICE: "2"
                 }
             );
             
             let currentActiveScene = EScenes.INTRO;
+
+
+            const introSceneUI = new UIManager();
+            const factorySceneUI = new UIManager();
+
+            const globalUI = new UIManager();
+
 
 
 
@@ -533,17 +540,21 @@
                 WOFpanel.setActive(false);
                 prizeLabel.setActive(false);
 
-                //UIManager.add(prizeLabel);
-                UIManager.add(startButton);
-                UIManager.add(audioButton);
-                //UIManager.add(claimButton);
-                UIManager.add(techtreePannel);
-                UIManager.add(WOFpanel);
-                UIManager.add(techtreeButton);
+                introSceneUI.add(startButton);
 
-                UIManager.add(trumpAnimation);
-                UIManager.add(smokinAnimation);
-                
+                globalUI.add(audioButton);
+                globalUI.add(techtreePannel);
+                globalUI.add(WOFpanel);
+                globalUI.add(techtreeButton);
+
+                globalUI.add(trumpAnimation);
+                globalUI.add(smokinAnimation);
+                globalUI.add(WOFbutton);
+
+                SceneManager.addScene(EScenes.INTRO, introSceneUI);
+                SceneManager.addScene(EScenes.FACTORY, factorySceneUI);
+
+                SceneManager.setGlobalUI(globalUI);
 
 
                 
@@ -582,7 +593,7 @@
                                 )
                             );
 
-                            UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+                            factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
                             Buy.play();
 
                             cigarettes -= Math.ceil((machineBaseCosts[i] * machineCostMultipliers[i]) / gameState["generalCostReduction"]);
@@ -647,9 +658,9 @@
                                 var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
                                 var cigaretAnimation = new canvasAnimation(machineX(i));
 
-                                UIManager.add(machineAnimation);
-                                UIManager.add(conveyerAnimation);
-                                UIManager.add(boxAnimation);
+                                factorySceneUI.add(machineAnimation);
+                                factorySceneUI.add(conveyerAnimation);
+                                factorySceneUI.add(boxAnimation);
                             }
 
                             machineCostMultipliers[i] *= 1.1;
@@ -695,7 +706,7 @@
                                 )
                             );
 
-                            UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+                            factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
                             Buy.play();
 
@@ -753,9 +764,9 @@
                                 var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
                                 var cigaretAnimation = new canvasAnimation(machineX(i));
 
-                                UIManager.add(machineAnimation);
-                                UIManager.add(conveyerAnimation);
-                                UIManager.add(boxAnimation);
+                                factorySceneUI.add(machineAnimation);
+                                factorySceneUI.add(conveyerAnimation);
+                                factorySceneUI.add(boxAnimation);
                             }
 
                             machineLevels[i] += 5;
@@ -799,7 +810,7 @@
                                 )
                             );
 
-                            UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+                            factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
                             Buy.play();
 
@@ -855,9 +866,9 @@
                                 var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
                                 var cigaretAnimation = new canvasAnimation(machineX(i));
 
-                                UIManager.add(machineAnimation);
-                                UIManager.add(conveyerAnimation);
-                                UIManager.add(boxAnimation);
+                                factorySceneUI.add(machineAnimation);
+                                factorySceneUI.add(conveyerAnimation);
+                                factorySceneUI.add(boxAnimation);
                             }
 
                             machineLevels[i] += 10;
@@ -869,11 +880,9 @@
                         }
                     }
 
-                    UIManager.add(upgradeButtons[i]);
-                    UIManager.add(batchUpgradeButtons[i]);
-                    UIManager.add(stackUpgradeButtons[i]);
-                    UIManager.add(WOFbutton);
-
+                    factorySceneUI.add(upgradeButtons[i]);
+                    factorySceneUI.add(batchUpgradeButtons[i]);
+                    factorySceneUI.add(stackUpgradeButtons[i]);
                 }
             }
 
@@ -925,9 +934,7 @@
                         return;
                     }
 
-                    // buttons inside panel
-                    if(UIManager.handleClick(mx,my))
-                        return;
+                   
                 }
 
                 if(techtreePannel.active && e.button === 1 && techtreePannel.containsPoint(mx,my))
@@ -1005,7 +1012,7 @@
                     const mouseX = e.clientX - rect.left;
                     const mouseY = e.clientY - rect.top;
 
-                    UIManager.handleClick(mouseX, mouseY);
+                    SceneManager.handleClick(mouseX, mouseY);
                 });
             }
 
@@ -1112,6 +1119,17 @@
                         trumpAnimation.manipulateAnimation("setFrame", 0);
                         trumpAnimation.behaviour = [["move", 2, 0], ["killSelfOnPositionX", canvas.width]];
                     }
+                    else if(e.key === "l" && debug)
+                    {
+                        if(currentActiveScene == EScenes.FACTORY)
+                        {
+                            currentActiveScene = EScenes.OFFICE;
+                        }
+                        else if(currentActiveScene == EScenes.OFFICE)
+                        {
+                            currentActiveScene = EScenes.FACTORY;
+                        }
+                    }
                 });
                     
                 window.addEventListener('resize', function() 
@@ -1193,7 +1211,6 @@
                     element.offset[1] = techtreePanelOffsetY;
                     element.Tooltip.offset[0] = techtreePanelOffsetX;
                     element.Tooltip.offset[1] = techtreePanelOffsetY;
-                    //element.updateOffset([techtreePanelOffsetX, techtreePanelOffsetY])
                 });// panel handles the positioning 
 
                 closeButton.x = techtreePannel.x + techtreePannel.sizeX - 35;
@@ -1203,7 +1220,7 @@
 
 
 
-        function drawBackground(ctx)
+        function drawFactoryBackground()
         {
             for(let j = 0; j < (WORLD_WIDTH + myGameArea.canvas.width) / backgroundDetail; j++)
             {
@@ -1268,7 +1285,7 @@
                             );
 
                             cigProduction.zPosition = -1;
-                            UIManager.add(cigProduction);
+                            factorySceneUI.add(cigProduction);
                             animatedCigarettes.push({obj: cigProduction, lifetime: 0});
                         
                             cigProduction.onClick = function()
@@ -1276,7 +1293,7 @@
                                 premiumCigarettes += 1 * (i + 1);
                                 Buy.play();
                             
-                                UIManager.elements.splice(UIManager.elements.indexOf(cigProduction),1);
+                                factorySceneUI.elements.splice(factorySceneUI.elements.indexOf(cigProduction),1);
                                 const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
                                 animatedCigarettes.splice(index, 1);
                             }
@@ -1294,7 +1311,7 @@
                             );
 
                             cigProduction.zPosition = -1;
-                            UIManager.add(cigProduction);
+                            factorySceneUI.add(cigProduction);
                             animatedCigarettes.push({obj: cigProduction, lifetime: 0});
                         
                             cigProduction.onClick = function()
@@ -1302,7 +1319,7 @@
                                 cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"] * 200;
                                 Buy.play();
                             
-                                UIManager.elements.splice(UIManager.elements.indexOf(cigProduction),1);
+                                factorySceneUI.elements.splice(factorySceneUI.elements.indexOf(cigProduction),1);
                                 const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
                                 animatedCigarettes.splice(index, 1);
                             }
@@ -1346,7 +1363,7 @@
                 }
                 if(element.lifetime > 1300)
                 {
-                    UIManager.elements.splice(UIManager.elements.indexOf(element.obj),1);
+                    factorySceneUI.elements.splice(factorySceneUI.elements.indexOf(element.obj),1);
                     animatedCigarettes.splice(animatedCigarettes.indexOf(element), 1);
                 }
                 });
@@ -1385,7 +1402,7 @@
                             layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
                             layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
                             drawStartButton();
-                            UIManager.draw(ctx, true);
+                            introSceneUI.draw(ctx, true);
                         }
                         else
                         {
@@ -1405,37 +1422,52 @@
         // Update Loop
         function updateGameArea()
         {
+            if (SceneManager.currentScene !== SceneManager.scenes[currentActiveScene]) 
+            {
+                SceneManager.setScene(currentActiveScene);
+            }
+
             update();
             frame += frameIncrements;
 
 
             // Update all Animations
-            UIManager.callUpdate(frame);
+            SceneManager.update(frame);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
             ctx.translate(-camera.x, -camera.y);
 
+            // Kill unused Emitter and Particles
+            particleGarbageCollector();
+
+
+            
+            
 
             // Only for World-Positioned Elements
             switch(currentActiveScene)
             {
                 case EScenes.INTRO:
                     break;
-                case EScenes.FACTORY: 
-                    drawBackground(ctx);
-                    drawButtonsAndLabels();
 
-                    // Draw all RCCC.js created Elements (Absolute)
-                    UIManager.draw(ctx, false);
+                case EScenes.FACTORY: 
+
+                    drawFactoryBackground();
+                    drawButtonsAndLabels();
 
                     // Cigarettes-Conveyer machanic
                     spawnCigarettesOnConveyer();
                     moveCigarettesAlongConveyer();
-            
-                    // Kill unused Emitter and Particles
-                    particleGarbageCollector();
                     break;
+                case EScenes.OFFICE:
+
+                    drawOfficeBackground();
+                    break;
+            }
+            if(gameStarted)
+            {
+                SceneManager.draw(ctx, false);
             }
 
 
@@ -1444,6 +1476,8 @@
 
 
 
+            
+
             // Only for Camera-Positioned Elements
             switch(currentActiveScene)
             {
@@ -1451,8 +1485,8 @@
                     drawIntroScene();
                     return;
                 case EScenes.FACTORY: 
+
                     // Draw all RCCC.js created Elements (!Absolute)
-                    UIManager.draw(ctx, true);
 
                     handleWheelOfFortune();
                     
@@ -1465,17 +1499,19 @@
                     cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"];
                     break;
             }
+            if(gameStarted)
+            {
+                SceneManager.draw(ctx, true);
+            }
 
 
 
             displayDebugInfo();
 
-            
-            
 
 
             // Hover-Check (Speciffically for that bitch of a start-button)
-            UIManager.onHoverCheck(cursorX, cursorY, ctx);
+            globalUI.onHoverCheck(cursorX, cursorY, ctx);
 
             clientClick = false;
         }
@@ -1519,7 +1555,7 @@
 
 
                 let CAA = 0;
-                UIManager.elements.forEach(element => {
+                factorySceneUI.elements.forEach(element => {
                         if(element.step && element.active)
                         {
                             CAA++;
@@ -1665,13 +1701,23 @@
             ctx.strokeStyle = "Black";
 
 
+            // Normal Cigarettes
             switch (true) 
             {
-                case cigarettes > 1000000000:
-                    ctx.fillText((cigarettes / 1000000000).toFixed(2) + "Trl", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                case cigarettes > 1000000000000000000000:
+                    ctx.fillText((cigarettes / 1000000000000000000000).toFixed(2) + "Sxl", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    break;
+                case cigarettes > 1000000000000000000:
+                    ctx.fillText((cigarettes / 1000000000000000000).toFixed(2) + "Qil", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    break;
+                case cigarettes > 1000000000000000:
+                    ctx.fillText((cigarettes / 1000000000000000).toFixed(2) + "Qal", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    break;
+                case cigarettes > 1000000000000:
+                    ctx.fillText((cigarettes / 1000000000000).toFixed(2) + "Trl", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
                     break;
                 case cigarettes > 1000000000:
-                    ctx.fillText((cigarettes / 1000000).toFixed(2) + "Bil", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    ctx.fillText((cigarettes / 1000000000).toFixed(2) + "Bil", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
                     break;
                 case cigarettes > 1000000:
                     ctx.fillText((cigarettes / 1000000).toFixed(2) + "Mil", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
@@ -1683,9 +1729,64 @@
                     ctx.fillText(Math.floor(cigarettes), canvas.width + CIGARETTESPANELOFFSET + 80, 42);
                     break;
             }
-           
-            ctx.fillText(upgradeCigarettes, canvas.width + CIGARETTESPANELOFFSET + 80, 102);
-            ctx.fillText(premiumCigarettes, canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+
+            // Upgrade Cigarettes
+            switch (true) 
+            {
+                case upgradeCigarettes > 1000000000000000000000:
+                    ctx.fillText((upgradeCigarettes / 1000000000000000000000).toFixed(2) + "Sxl", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    break;
+                case upgradeCigarettes > 1000000000000000000:
+                    ctx.fillText((upgradeCigarettes / 1000000000000000000).toFixed(2) + "Qil", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    break;
+                case upgradeCigarettes > 1000000000000000:
+                    ctx.fillText((upgradeCigarettes / 1000000000000000).toFixed(2) + "Qal", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    break;
+                case upgradeCigarettes > 1000000000000:
+                    ctx.fillText((upgradeCigarettes / 1000000000000).toFixed(2) + "Trl", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    break;
+                case upgradeCigarettes > 1000000000:
+                    ctx.fillText((upgradeCigarettes / 1000000000).toFixed(2) + "Bil", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    break;
+                case upgradeCigarettes > 1000000:
+                    ctx.fillText((upgradeCigarettes / 1000000).toFixed(2) + "Mil", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    break;
+                case upgradeCigarettes > 1000:
+                    ctx.fillText((upgradeCigarettes / 1000).toFixed(2) + "Tsd", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    break;
+                default:
+                    ctx.fillText(upgradeCigarettes, canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    break;
+            }
+
+            // Premium Cigarettes
+            switch (true) 
+            {
+                case premiumCigarettes > 1000000000000000000000:
+                    ctx.fillText((premiumCigarettes / 1000000000000000000000).toFixed(2) + "Sxl", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    break;
+                case premiumCigarettes > 1000000000000000000:
+                    ctx.fillText((premiumCigarettes / 1000000000000000000).toFixed(2) + "Qil", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    break;
+                case premiumCigarettes > 1000000000000000:
+                    ctx.fillText((premiumCigarettes / 1000000000000000).toFixed(2) + "Qal", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    break;
+                case premiumCigarettes > 1000000000000:
+                    ctx.fillText((premiumCigarettes / 1000000000000).toFixed(2) + "Trl", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    break;
+                case premiumCigarettes > 1000000000:
+                    ctx.fillText((premiumCigarettes / 1000000000).toFixed(2) + "Bil", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    break;
+                case premiumCigarettes > 1000000:
+                    ctx.fillText((premiumCigarettes / 1000000).toFixed(2) + "Mil", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    break;
+                case premiumCigarettes > 1000:
+                    ctx.fillText((premiumCigarettes / 1000).toFixed(2) + "Tsd", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    break;
+                default:
+                    ctx.fillText(premiumCigarettes, canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    break;
+            }
         }
 
 
@@ -1912,36 +2013,101 @@ function detectPrize()
 function spawnAPulse()
 {
     currentActiveParticleEmitter.push(
-                new pulseEmitter(
-                    Math.floor(Math.random() * canvas.width), 
-                    Math.floor(Math.random() * canvas.height),
-                    "rgb("+ Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ")",
-                    0.2,
-                    Math.floor(Math.random() * 5),
-                    100,
-                    40,
-                    true,
-                    true
-                )
-            );
-            currentActiveParticleEmitter[currentActiveParticleEmitter.length-1].alpha = 0.1;
-            UIManager.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+        new pulseEmitter(
+            Math.floor(Math.random() * canvas.width), 
+            Math.floor(Math.random() * canvas.height),
+            "rgb("+ Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ")",
+            0.2,
+            Math.floor(Math.random() * 5),
+            100,
+            40,
+            true,
+            true
+        )
+    );
+    currentActiveParticleEmitter[currentActiveParticleEmitter.length-1].alpha = 0.1;
+    factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 }
 
 function handleWheelOfFortune()
 {
     if(WOFspinning || !prizeClaimed)
-            {
+    {
 
-                WOFrotation += WOFvelocity;
-                WOFvelocity *= 0.985;
+        WOFrotation += WOFvelocity;
+        WOFvelocity *= 0.985;
 
-                if(WOFvelocity < 0.0002 && !prizeClaimed && WOFspinning)
-                {
-                    WOFspinning = false;
-                    detectPrize();
-                }
+        if(WOFvelocity < 0.0002 && !prizeClaimed && WOFspinning)
+        {
+            WOFspinning = false;
+            detectPrize();
+        }
                 
-                drawWheel();
+        drawWheel();
+    }
+}
+
+
+function drawOfficeBackground()
+{
+    for(let j = 0; j < (WORLD_WIDTH + myGameArea.canvas.width) / backgroundDetail; j++)
+    {
+        if(j % 4 == 2 || j % 4 == 3)
+        {
+            for(let i = 0; i < myGameArea.canvas.height / backgroundDetail; i++)
+            {
+            if(i + 3 < myGameArea.canvas.height / backgroundDetail)
+            {
+                if(i % 5 == 0 || i % 5 == 1)
+                {
+                    ctx.fillStyle = "rgb(179, 179, 255)";
+                    ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                    //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                }
+                else
+                {
+                    ctx.fillStyle = "White";
+                    ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                    //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                }
             }
+            else if(i + 2 < myGameArea.canvas.height / backgroundDetail)
+            {
+                ctx.fillStyle = "Grey";
+                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                //ctx.drawImage(bricksGroundBordered, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+            }
+            else
+            {
+                ctx.fillStyle = "Black";
+                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                //ctx.drawImage(bricksGround, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+            }
+            }
+        }
+        else
+        {
+            for(let i = 0; i < myGameArea.canvas.height / backgroundDetail; i++)
+            {
+            if(i + 3 < myGameArea.canvas.height / backgroundDetail)
+            {
+                ctx.fillStyle = "White";
+                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+            }
+            else if(i + 2 < myGameArea.canvas.height / backgroundDetail)
+            {
+                ctx.fillStyle = "Grey";
+                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                //ctx.drawImage(bricksGroundBordered, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+            }
+            else
+            {
+                ctx.fillStyle = "Black";
+                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                //ctx.drawImage(bricksGround, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+            }
+            }
+        }
+    }
 }

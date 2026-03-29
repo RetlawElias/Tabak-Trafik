@@ -1,15 +1,18 @@
 
 // UI Manager for all UI-Elements
-export const UIManager = 
+export class UIManager 
             {
-                elements: [],
+                constructor() 
+                {
+                    this.elements = [];
+                }
                 
                 add(element) 
                 {
                     this.elements.push(element);
 
                     this.elements.sort((a, b) => a.zPosition - b.zPosition);
-                },
+                }
 
                 handleClick(mouseX, mouseY) 
                 {
@@ -46,7 +49,7 @@ export const UIManager =
                     }
 
                     return false;
-                },
+                }
 
                 onHoverCheck(mouseX, mouseY, ctx)
                 {
@@ -83,7 +86,7 @@ export const UIManager =
                     }
 
                     return false;
-                },
+                }
 
                 draw(ctx, absolute) 
                 {
@@ -107,7 +110,7 @@ export const UIManager =
                             }
                         } 
                     }
-                },
+                }
 
 
                 callUpdate(frame)
@@ -120,8 +123,70 @@ export const UIManager =
                             element.update(frame);
                         }
                     });
-                },
+                }
             };
+
+            
+
+            export const SceneManager = {
+                currentScene: null,
+                scenes: {},
+                globalUI: new UIManager(),
+                
+                setGlobalUI(UIManager)
+                {
+                    this.globalUI = UIManager;
+                },
+
+                addScene(name, uiManager) {
+                    this.scenes[name] = uiManager;
+                },
+
+                setScene(name) {
+                    this.currentScene = this.scenes[name];
+                },
+
+                handleClick(x, y) {
+                    // Global UI gets priority
+                    if (this.globalUI.handleClick(x, y)) return true;
+                    
+                    if (this.currentScene) {
+                        return this.currentScene.handleClick(x, y);
+                    }
+                    return false;
+                },
+
+                onHover(x, y, ctx) {
+                    if (this.globalUI.onHoverCheck(x, y, ctx)) return true;
+                    
+                    if (this.currentScene) {
+                    return this.currentScene.onHoverCheck(x, y, ctx);
+                }
+                    return false;
+                },
+                    
+                draw(ctx, absolute) {
+                    console.log(this.currentScene);
+                    if (this.currentScene) 
+                    {
+                        this.currentScene.draw(ctx, absolute);
+                    }
+                    
+                    // Draw global on top
+                    if(absolute)
+                    {
+                        this.globalUI.draw(ctx, true);
+                    }
+                },
+                
+            update(frame) {
+                if (this.currentScene) {
+                    this.currentScene.callUpdate(frame);
+                }
+
+                this.globalUI.callUpdate(frame);
+            }
+        };
 
 
             // camera object
