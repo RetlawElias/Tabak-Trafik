@@ -645,13 +645,22 @@
 
                             if(machineLevels[i] == 0)
                             {
-                                // Machine: machineX(i);
-                                // Conveyer: machineX(i) + 200;
-                                // Box: machineX(i) + ?;
+                                currentActiveParticleEmitter.push(
+                                    new pulseEmitter(
+                                        machineX(i) + 250, 
+                                        760,
+                                        "White",
+                                        1,
+                                        30,
+                                        18,
+                                        15,
+                                        true,
+                                        false
+                                    )
+                                );
 
-                                //ctx.drawImage(MachineFrame1, machineX(i), 512, 256, 512);
-                                //ctx.drawImage(ConveyerFrame4, 390 + 1100 * i, 760, 512, 256);
-                                //ctx.drawImage(BoxFrame1, machineX(i) + 535, 830, 256, 256);
+                                currentActiveParticleEmitter[currentActiveParticleEmitter.length-1].alpha = 0.02;
+                                factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
                                 var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
                                 var conveyerAnimation = new canvasAnimation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
@@ -751,18 +760,27 @@
 
                             if(machineLevels[i] == 0)
                             {
-                                // Machine: machineX(i);
-                                // Conveyer: machineX(i) + 200;
-                                // Box: machineX(i) + ?;
+                                currentActiveParticleEmitter.push(
+                                    new pulseEmitter(
+                                        machineX(i) + 250, 
+                                        760,
+                                        "White",
+                                        1,
+                                        30,
+                                        18,
+                                        15,
+                                        true,
+                                        false
+                                    )
+                                );
 
-                                //ctx.drawImage(MachineFrame1, machineX(i), 512, 256, 512);
-                                //ctx.drawImage(ConveyerFrame4, 390 + 1100 * i, 760, 512, 256);
-                                //ctx.drawImage(BoxFrame1, machineX(i) + 535, 830, 256, 256);
+                                currentActiveParticleEmitter[currentActiveParticleEmitter.length-1].alpha = 0.02;
+                                factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
+                                    
 
                                 var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
                                 var conveyerAnimation = new canvasAnimation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
                                 var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
-                                var cigaretAnimation = new canvasAnimation(machineX(i));
 
                                 factorySceneUI.add(machineAnimation);
                                 factorySceneUI.add(conveyerAnimation);
@@ -853,13 +871,22 @@
 
                             if(machineLevels[i] == 0)
                             {
-                                // Machine: machineX(i);
-                                // Conveyer: machineX(i) + 200;
-                                // Box: machineX(i) + ?;
+                                currentActiveParticleEmitter.push(
+                                    new pulseEmitter(
+                                        machineX(i) + 250, 
+                                        760,
+                                        "White",
+                                        1,
+                                        30,
+                                        18,
+                                        15,
+                                        true,
+                                        false
+                                    )
+                                );
 
-                                //ctx.drawImage(MachineFrame1, machineX(i), 512, 256, 512);
-                                //ctx.drawImage(ConveyerFrame4, 390 + 1100 * i, 760, 512, 256);
-                                //ctx.drawImage(BoxFrame1, machineX(i) + 535, 830, 256, 256);
+                                currentActiveParticleEmitter[currentActiveParticleEmitter.length-1].alpha = 0.02;
+                                factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
                                 var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
                                 var conveyerAnimation = new canvasAnimation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
@@ -1352,6 +1379,11 @@
         function moveCigarettesAlongConveyer()
         {
             animatedCigarettes.forEach(element => {
+                if(element.lifetime > 800)
+                {
+                    element.obj.alpha = Math.sin(element.lifetime * (element.lifetime / 12000)) / 2 + 0.75;
+                }
+        
                 if(frame % Math.round(50 / 4) == 0)
                     {
                         element.obj.x += 4;
@@ -1360,6 +1392,7 @@
                 if(element.lifetime > 1250)
                 {
                     element.obj.y += 1;
+                    
                 }
                 if(element.lifetime > 1300)
                 {
@@ -1486,15 +1519,11 @@
                     return;
                 case EScenes.FACTORY: 
 
-                    // Draw all RCCC.js created Elements (!Absolute)
-
                     handleWheelOfFortune();
                     
                     drawCurrencyPanel();
             
                     updateUpgradeButtons();
-
-                    handleTechtreeSpecificBehaviour();
 
                     cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"];
                     break;
@@ -1504,7 +1533,7 @@
                 SceneManager.draw(ctx, true);
             }
 
-
+            handleTechtreeSpecificBehaviour();
 
             displayDebugInfo();
 

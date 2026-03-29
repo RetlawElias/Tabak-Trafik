@@ -319,7 +319,7 @@ export class techtreeUpgradeToolTip extends canvasElement
                         ctx.textAlign = "center";
                         ctx.textBaseline = "middle";
                         ctx.fillStyle = "black";
-                        ctx.font = "12px Courier";
+                        ctx.font = "12px Arial";
                     
 
 
