@@ -166,7 +166,6 @@ export class UIManager
                 },
                     
                 draw(ctx, absolute) {
-                    console.log(this.currentScene);
                     if (this.currentScene) 
                     {
                         this.currentScene.draw(ctx, absolute);

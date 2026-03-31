@@ -216,6 +216,75 @@ export class canvasButton extends canvasElement
 
 
 
+// Textfields
+export class canvasTextfield extends canvasElement
+        {
+            constructor(x,y, sizeX, sizeY, Texture, isAbsolute, isActive = true, offset = [0,0])
+            {
+                super(x,y,sizeX,sizeY,Texture,isAbsolute,isActive,offset);
+
+                this.selected = false;
+                this.maxLength = 50;
+                this.cursorPosition = 0;
+            }
+
+            
+            drawSelf(ctx) 
+            {
+                super.drawSelf(ctx);
+
+                if (this.active)
+                    {
+                        ctx.globalAlpha = this.alpha;
+
+                        let text;
+                        
+                        if(this.selected)
+                        {
+                            let half1 = this.Texture.text.substring(0, this.cursorPosition) + "|";
+                            let half2 = this.Texture.text.substring(this.cursorPosition, this.Texture.text.length);
+                            text = half1 + half2;
+                        }
+                        else
+                        {
+                            text = this.Texture.text;
+                        }
+
+
+                        const paddingX = this.sizeX * 0.1; // 10% horizontal padding
+                        const paddingY = this.sizeY * 0.2; // vertical breathing room
+                        
+                        
+                        if (!text) return;
+                        
+                        const maxTextWidth = this.sizeX - paddingX * 2;
+                        let fontSize = Math.floor(this.sizeY * 0.45); // start large
+                        
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = "black";
+                        
+                        // Shrink-to-fit loop
+                        do
+                        {
+                            ctx.font = `${fontSize}px Arial`;
+                            fontSize--;
+                        }
+                        while (ctx.measureText(text).width > maxTextWidth && fontSize > 8);
+                        
+                        // Centered draw
+                        ctx.fillText(
+                            text,
+                            this.x + this.sizeX / 2,
+                            this.y + this.sizeY / 2
+                        );
+                        ctx.globalAlpha = 1;
+                    }
+            }    
+        }
+
+
+
 // Panels
 export class canvasPannel extends canvasElement
         {
@@ -812,6 +881,8 @@ export class canvasAnimation extends canvasElement
         this.updateInterval = updateInterval;
         this.step = 0;
         this.behaviour = [];
+        this.freezeFrame = null;
+        this.finished = false;
     }
 
     setActive(active)
@@ -828,9 +899,9 @@ export class canvasAnimation extends canvasElement
     {
         if(this.active)
         {
-
-            this.updateBehaviour(frame);
-            
+            if(!this.finished)
+            {
+                this.updateBehaviour(frame);
             
             
             if(frame % this.updateInterval == 0)
@@ -841,12 +912,24 @@ export class canvasAnimation extends canvasElement
                             this.step = 0;
                             if(!this.loop)
                             {
-                                this.setActive(false);
+                                this.finished = true;
+                                if(this.freezeFrame == null)
+                                {
+                                    this.setActive(false);
+                                }
                             }
                         }
                     }
                 }
+            }
         }
+
+    play()
+    {
+        this.step = 0;
+        this.finished = false;
+        this.setActive(true);
+    }
 
     manipulateAnimation(command, values)
     {
@@ -916,7 +999,14 @@ export class canvasAnimation extends canvasElement
         if(this.active)
         {
             ctx.globalAlpha = this.alpha;
-            ctx.drawImage(this.Frames[this.step], this.x, this.y, this.sizeX, this.sizeY);
+            if(this.finished && !this.loop && this.freezeFrame != null)
+            {
+                ctx.drawImage(this.freezeFrame, this.x, this.y, this.sizeX, this.sizeY);
+            }
+            else
+            {
+                ctx.drawImage(this.Frames[this.step], this.x, this.y, this.sizeX, this.sizeY);
+            }
             ctx.globalAlpha = 1;
         }
     }

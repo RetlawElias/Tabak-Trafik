@@ -1,7 +1,7 @@
             import { UIManager, camera, SceneManager} from "./dom.js";
             import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, 
                      particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip, canvasLabel, pulseEmitter, 
-                     pulse, canvasAnimation } from "./RetlawsCoolCanvasControls.js";
+                     pulse, canvasAnimation, canvasTextfield } from "./RetlawsCoolCanvasControls.js";
             import { loadFrames } from "./animationMaster.js";
 
 
@@ -9,6 +9,7 @@
             document.addEventListener("DOMContentLoaded", () => 
             {
                 startGame();
+                realignGUI();
             });
 
 
@@ -46,6 +47,40 @@
             ];
 
             
+            const nameAttributeDatabase = [
+                "Productive",
+                "Rapid",
+                "Efficient",
+                "Clean",
+                "Super",
+                "Awesome",
+                "Competitive",
+            ];
+
+            const nameThemeDatabase = [
+                "Cigarette",
+                "Cigar",
+                "Shag",
+                "Snuff",
+                "Smoke",
+                "Nicotine",
+                "Drug",
+                "Ciggy",
+                "Tobacco"
+            ];
+
+            const nameOperationDatabase = [
+                "Business",
+                "Cooperation",
+                "Factory",
+                "Company",
+                "Productions",
+                "Creator",
+                "Maker",
+                "Competitor"
+            ];
+
+
 
             const slice = (Math.PI*2)/segments.length;
 
@@ -54,8 +89,8 @@
             let WOFvelocity = 0;
             let WOFspinning = false;
 
-            const smokinAnimationFrames = loadFrames("Textures/SmokinAnimation", 152, 1);
-            const trumpAnimationFrames = loadFrames("Textures/WinningAnimation", 138, 2);
+            const smokinAnimationFrames = loadFrames("Textures/SmokinAnimation", 152, 2);
+            const trumpAnimationFrames = loadFrames("Textures/WinningAnimation", 138, 4);
 
             let trumpAnimation;
             let smokinAnimation;
@@ -91,6 +126,7 @@
             const globalUI = new UIManager();
 
 
+            let selectedTextfield = null;
 
 
             let direction = 1;        // 1 = right, -1 = left
@@ -132,6 +168,8 @@
             var currentActiveParticleEmitter = [];
             
             // Game Variables
+
+            var gameName = "";
             var gameStarted = false;
             var frame = 0;
             
@@ -166,6 +204,9 @@
             var closeButton;
             var claimButton;
             var WOFpanel;
+            var nameTextfield;
+            var namePanel;
+            var nameLabel;
             
             var prizeLabel;
 
@@ -224,6 +265,7 @@
             // Animationdata
             var machineFrameCollection = [MachineFrame1, MachineFrame2, MachineFrame3, MachineFrame4, MachineFrame5, MachineFrame6, MachineFrame7];
             var converyerFrameCollection = [ConveyerFrame1, ConveyerFrame2, ConveyerFrame3, ConveyerFrame4];
+            var boxFrameCollection = [BoxFrame1];
 
 
 
@@ -239,13 +281,14 @@
 
             class BackgroundLayer 
             {
-                constructor(image, speed, offset = 0, isCloudPattern = false) 
+                constructor(name, image, speed, offset = 0, isCloudPattern = false) 
                 {
                     this.image = image;
                     this.speed = speed;
                     this.x = offset;
                     this.y = 0;
                     this.isCloudPattern = isCloudPattern;
+                    this.name = name;
                 }
 
                 update(direction, dt, preGameOffset) 
@@ -269,11 +312,11 @@
 
 
             const layers = [
-                new BackgroundLayer(background, 0.01, -20),
-                new BackgroundLayer(cloudspattern, -30, -20, true),
-                new BackgroundLayer(mountains, 0.5, -20),
-                new BackgroundLayer(valley, 1, -20),
-                new BackgroundLayer(fabrik, 1.5, -45),
+                new BackgroundLayer("Background", background, 0.01, -20),
+                new BackgroundLayer("Cloudpattern", cloudspattern, -30, -20, true),
+                new BackgroundLayer("Mountains", mountains, 0.5, -20),
+                new BackgroundLayer("Valley", valley, 1, -20),
+                new BackgroundLayer("Factory", fabrik, 1.5, -45),
             ];
 
             
@@ -368,7 +411,8 @@
                             if(upgradeCigarettes >= obj.cost && !obj.isBought && isBuyable)
                             {
                                 upgradeCigarettes -= obj.cost;
-                                Buy.play();
+                                const newAudio = new Audio('Audio/Collect.wav');
+                                newAudio.play();
                                 applyUpgrade(data.Upgrades[i].Effects);
                                 obj.isBought = true;
                             }
@@ -430,13 +474,31 @@
             {
 
                 //Assignment
-                techtreeButton = new canvasButton(myGameArea.canvas.width / 2 - 150, 0, 200, 50, new canvasButtonTexture("", "Grey", "Techtree"), true);
+                techtreeButton = new canvasButton(myGameArea.canvas.width / 2 - 400, 5, 200, 50, new canvasButtonTexture("", "Grey", "Techtree"), true);
                 startButton = new canvasButton(myGameArea.canvas.width / 2 - 250, 100, 500, 250, new canvasButtonTexture(TextureButton), true);
+
+                nameTextfield = new canvasTextfield(myGameArea.canvas.width / 2 - 250, 400, 500, 200, new canvasButtonTexture("", "White", ""), true);
+                nameTextfield.sizeX = myGameArea.canvas.width / 6.5;
+                nameTextfield.sizeY = myGameArea.canvas.height / 10;
+                nameTextfield.maxLength = 30;
+                nameTextfield.onClick = function()
+                {
+                    nameTextfield.selected = true;
+                    selectedTextfield = nameTextfield;
+                    console.log("Selected a Textfield!");
+                }
+
+                namePanel = new canvasPannel(myGameArea.canvas.width / 2 - 140, 5, 280, 65, new canvasPannelTexture("", "White"), true, true);
+                namePanel.alpha = 0.7;
+                nameLabel = new canvasLabel(myGameArea.canvas.width / 2 - 140, 5, 280, 65, new canvasButtonTexture("", "Black", "Name"), true, true);
+                nameLabel.zPosition = -2;
+
+
                 audioButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 60, 50, 50, new canvasButtonTexture("", "Red", "🎵"), true);
                 claimButton = new canvasButton(myGameArea.canvas.width / 2 - 200, myGameArea.canvas.height - 300, 400, 200, new canvasButtonTexture("", "Yellow", "Claim!"), true, false);
 
                 techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(240,240,240,0.85)"), true);
-                WOFbutton = new canvasButton(myGameArea.canvas.width / 2 + 170, 0, 200, 50, new canvasButtonTexture("", "Purple", "Wheel of Fortune"), true);
+                WOFbutton = new canvasButton(myGameArea.canvas.width / 2 + 200, 0, 200, 50, new canvasButtonTexture("", "Purple", "Wheel of Fortune"), true);
                 WOFpanel = new canvasPannel(myGameArea.canvas.width / 2 - 500, 50, 1000, myGameArea.canvas.height - 100, new canvasPannelTexture("", "white"), true);
                 WOFpanel.alpha = 0.8;
                 
@@ -475,11 +537,33 @@
             
                 startButton.onClick = function()
                 {
-                    gameStarted = true;
-                    currentActiveScene = EScenes.FACTORY;
-                    startButton.active = false;
-                    techtreeButton.setActive(true);
-                    WOFbutton.setActive(true);
+                    if(nameTextfield.Texture.text == "" || nameTextfield.Texture.text == " ")
+                    {
+                        if(confirm("No name has been set for the factory... \nSelect a Random one?"))
+                        {
+                            gameName = 
+                                nameAttributeDatabase[Math.floor(Math.random() * (nameAttributeDatabase.length - 1))] + " " +
+                                nameThemeDatabase[Math.floor(Math.random() * (nameThemeDatabase.length - 1))] + " " +
+                                nameOperationDatabase[Math.floor(Math.random() * (nameOperationDatabase.length-1) )];
+                            console.log(gameName);
+                            nameLabel.Texture.text = gameName;
+                            gameStarted = true;
+                            currentActiveScene = EScenes.FACTORY;
+                            startButton.active = false;
+                            techtreeButton.setActive(true);
+                            WOFbutton.setActive(true);
+                        }
+                    }
+                    else
+                    {
+                        gameName = nameTextfield.Texture.text;
+                        nameLabel.Texture.text = gameName;
+                        gameStarted = true;
+                        currentActiveScene = EScenes.FACTORY;
+                        startButton.active = false;
+                        techtreeButton.setActive(true);
+                        WOFbutton.setActive(true);
+                    }
                 }
 
 
@@ -535,21 +619,26 @@
                 techtreePannel.setActive(false);
                 WOFbutton.setActive(false);
 
+                //namePanel.addChild(nameLabel);
+
                 WOFpanel.addChild(claimButton);
                 WOFpanel.addChild(prizeLabel);
                 WOFpanel.setActive(false);
                 prizeLabel.setActive(false);
 
                 introSceneUI.add(startButton);
+                introSceneUI.add(nameTextfield);
 
+                globalUI.add(WOFbutton);
+                globalUI.add(techtreeButton);
                 globalUI.add(audioButton);
+                globalUI.add(nameLabel);
+                globalUI.add(namePanel);
                 globalUI.add(techtreePannel);
                 globalUI.add(WOFpanel);
-                globalUI.add(techtreeButton);
 
                 globalUI.add(trumpAnimation);
                 globalUI.add(smokinAnimation);
-                globalUI.add(WOFbutton);
 
                 SceneManager.addScene(EScenes.INTRO, introSceneUI);
                 SceneManager.addScene(EScenes.FACTORY, factorySceneUI);
@@ -594,7 +683,8 @@
                             );
 
                             factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
-                            Buy.play();
+                            const newAudio = new Audio('Audio/Collect.wav');
+                            newAudio.play();
 
                             cigarettes -= Math.ceil((machineBaseCosts[i] * machineCostMultipliers[i]) / gameState["generalCostReduction"]);
                             upgradeCigarettes += 1;
@@ -662,7 +752,8 @@
                                 currentActiveParticleEmitter[currentActiveParticleEmitter.length-1].alpha = 0.02;
                                 factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
-                                var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
+                                var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, boxFrameCollection, 10, true, false, false);
+                                boxAnimation.freezeFrame = BoxFrame1;
                                 var conveyerAnimation = new canvasAnimation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
                                 var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
                                 var cigaretAnimation = new canvasAnimation(machineX(i));
@@ -717,7 +808,8 @@
 
                             factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
-                            Buy.play();
+                            const newAudio = new Audio('Audio/Collect.wav');
+                            newAudio.play();
 
                             cigarettes -= BatchCost;
                             upgradeCigarettes += 5;
@@ -778,7 +870,8 @@
                                 factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
                                     
 
-                                var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
+                                var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, boxFrameCollection, 10, true, false, false);
+                                boxAnimation.freezeFrame = BoxFrame1;
                                 var conveyerAnimation = new canvasAnimation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
                                 var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
 
@@ -830,7 +923,8 @@
 
                             factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
-                            Buy.play();
+                            const newAudio = new Audio('Audio/Collect.wav');
+                            newAudio.play();
 
                             cigarettes -= StackCost;
                             upgradeCigarettes += 10;
@@ -888,7 +982,8 @@
                                 currentActiveParticleEmitter[currentActiveParticleEmitter.length-1].alpha = 0.02;
                                 factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
-                                var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, [BoxFrame1], 1, true, false);
+                                var boxAnimation = new canvasAnimation(machineX(i) + 535, 830, 256, 256, boxFrameCollection, 10, true, false, false);
+                                boxAnimation.freezeFrame = BoxFrame1;
                                 var conveyerAnimation = new canvasAnimation(machineX(i) + 200, 760, 512, 256, converyerFrameCollection, 10, true, false);
                                 var machineAnimation = new canvasAnimation(machineX(i), 512, 256, 512, machineFrameCollection, 20, true, false);
                                 var cigaretAnimation = new canvasAnimation(machineX(i));
@@ -1035,6 +1130,12 @@
 
                 canvas.addEventListener("click", function(e)
                 {
+                    if(selectedTextfield !== null)
+                    {
+                        selectedTextfield.selected = false;
+                        selectedTextfield = null;
+                    }
+
                     const rect = canvas.getBoundingClientRect();
                     const mouseX = e.clientX - rect.left;
                     const mouseY = e.clientY - rect.top;
@@ -1060,6 +1161,64 @@
 
                 window.addEventListener('keydown', function (e) 
                 {
+                    if(selectedTextfield !== null)
+                    {
+                        if(selectedTextfield.Texture.text.length < selectedTextfield.maxLength || e.key === "Backspace" ||  e.key === "Delete")
+                        {
+                        switch(e.key)
+                        {
+                            case "Backspace":
+                                if(selectedTextfield.Texture.text.length != 0 && selectedTextfield.cursorPosition > 0)
+                                {
+                                    let substr = 
+                                        selectedTextfield.Texture.text.slice(0,selectedTextfield.cursorPosition-1) + 
+                                        selectedTextfield.Texture.text.slice(selectedTextfield.cursorPosition);
+
+                                    selectedTextfield.Texture.text = substr;
+                                    selectedTextfield.cursorPosition--;
+                                }
+                                break;
+                            case "Delete":
+                                if(selectedTextfield.Texture.text.length != 0 && selectedTextfield.cursorPosition > 0)
+                                {
+                                    let substr = 
+                                        selectedTextfield.Texture.text.slice(0,selectedTextfield.cursorPosition) + 
+                                        selectedTextfield.Texture.text.slice(selectedTextfield.cursorPosition+1);
+
+                                    selectedTextfield.Texture.text = substr;
+                                }
+                                break;
+                            case "Space":
+                                selectedTextfield.Texture.text += " ";
+                                selectedTextfield.cursorPosition++;
+                                break;
+                            case "AltGraph":
+                                break;
+                            case "Shift":
+                                break;
+                            case "Control":
+                                break;
+                            case "ArrowLeft":
+                                if(selectedTextfield.cursorPosition > 0)
+                                {
+                                    selectedTextfield.cursorPosition--;
+                                }
+                                break;
+                            case "ArrowRight":
+                                if(selectedTextfield.cursorPosition < selectedTextfield.Texture.text.length)
+                                {
+                                    selectedTextfield.cursorPosition++;
+                                }
+                                break;
+                            default:
+                                selectedTextfield.Texture.text += e.key;
+                                selectedTextfield.cursorPosition++;
+                                break;
+                        }
+                        }
+                    }
+                    
+
                     if (e.key === "ArrowDown" && debug) 
                     {
                         frameIncrements--;
@@ -1144,7 +1303,7 @@
                         trumpAnimation.setActive(true);
                         trumpAnimation.manipulateAnimation("teleport", [-800, canvas.height / 2 - 400]);
                         trumpAnimation.manipulateAnimation("setFrame", 0);
-                        trumpAnimation.behaviour = [["move", 2, 0], ["killSelfOnPositionX", canvas.width]];
+                        trumpAnimation.behaviour = [["move", 4, 0], ["killSelfOnPositionX", canvas.width]];
                     }
                     else if(e.key === "l" && debug)
                     {
@@ -1161,8 +1320,8 @@
                     
                 window.addEventListener('resize', function() 
                 {
-                    document.getElementById("canvas").width = window.innerWidth - 0;
-                    document.getElementById("canvas").height = window.innerHeight - 4;
+                    document.getElementById("canvas").width = window.innerWidth;
+                    document.getElementById("canvas").height = window.innerHeight;
                     realignGUI();
                 });
             }
@@ -1173,8 +1332,8 @@
             {
                 canvas : document.getElementById("canvas"),
                 start : function() {
-                    this.canvas.width = window.innerWidth - 0;
-                    this.canvas.height = window.innerHeight - 4;
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
                     this.context = this.canvas.getContext("2d");
                     ctx = this.context;
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
@@ -1251,7 +1410,7 @@
         {
             for(let j = 0; j < (WORLD_WIDTH + myGameArea.canvas.width) / backgroundDetail; j++)
             {
-                for(let i = 0; i < myGameArea.canvas.height / backgroundDetail; i++)
+                for(let i = 0; i < myGameArea.canvas.height / backgroundDetail + 1; i++)
                 {
                     if(i + 3 < myGameArea.canvas.height / backgroundDetail)
                     {
@@ -1277,6 +1436,11 @@
             startButton.sizeX = myGameArea.canvas.width / 4;
             startButton.sizeY = myGameArea.canvas.height / 4;
 
+            nameTextfield.sizeX = myGameArea.canvas.width / 7.8;
+            nameTextfield.sizeY = myGameArea.canvas.height / 11;
+            
+
+
             techtreePannel.sizeX = myGameArea.canvas.width - 100;
             techtreePannel.sizeY = myGameArea.canvas.height - 100;
             
@@ -1284,8 +1448,10 @@
             audioButton.y = myGameArea.canvas.height - 60;
             
             
-            techtreeButton.x = myGameArea.canvas.width / 2 - 150;
-            WOFbutton.x = myGameArea.canvas.width / 2 + 170;
+            techtreeButton.x = myGameArea.canvas.width / 2 - 400;
+            namePanel.x = myGameArea.canvas.width / 2 - 140;
+            nameLabel.x = myGameArea.canvas.width / 2 - 140;
+            WOFbutton.x = myGameArea.canvas.width / 2 + 200;
         }
         
 
@@ -1318,7 +1484,8 @@
                             cigProduction.onClick = function()
                             {
                                 premiumCigarettes += 1 * (i + 1);
-                                Buy.play();
+                                const newAudio = new Audio('Audio/Collect.wav');
+                                newAudio.play();
                             
                                 factorySceneUI.elements.splice(factorySceneUI.elements.indexOf(cigProduction),1);
                                 const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
@@ -1344,7 +1511,8 @@
                             cigProduction.onClick = function()
                             {
                                 cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"] * 200;
-                                Buy.play();
+                                const newAudio = new Audio('Audio/Collect.wav');
+                                newAudio.play();
                             
                                 factorySceneUI.elements.splice(factorySceneUI.elements.indexOf(cigProduction),1);
                                 const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
@@ -1432,7 +1600,19 @@
                         else if(preGameLoadupIterator < 150)
                         {
                             startScreenFadingIterator++;
-                            layers.forEach(layer => layer.update(direction, dt, preGameLoadupIterator));
+                            layers.forEach(layer => {
+                                    layer.update(direction, dt, preGameLoadupIterator)
+                                    if(layer.name == "Factory")
+                                    {
+                                        //this.x += direction * this.speed * dt;
+                                        //this.y = Math.round(preGameOffset * this.speed * 4 / 4) * 4;
+                                        //myGameArea.canvas.width / 2 - (myGameArea.canvas.width / 4 / 2)
+                                        
+                                        nameTextfield.x = Math.round(layer.x * 2) +     myGameArea.canvas.width / 2 + (myGameArea.canvas.width / 2.7 / 2);
+                                        nameTextfield.y = layer.y +                     myGameArea.canvas.height / 2 + (myGameArea.canvas.height / 3 / 4);
+                                    }
+                                }
+                            );
                             layers.forEach(layer => layer.draw(ctx, myGameArea.canvas));
                             drawStartButton();
                             introSceneUI.draw(ctx, true);
@@ -1519,20 +1699,20 @@
                     return;
                 case EScenes.FACTORY: 
 
-                    handleWheelOfFortune();
-                    
-                    drawCurrencyPanel();
-            
-                    updateUpgradeButtons();
-
-                    cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"];
-                    break;
+                
+                drawCurrencyPanel();
+                
+                updateUpgradeButtons();
+                
+                cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"];
+                break;
             }
             if(gameStarted)
             {
                 SceneManager.draw(ctx, true);
             }
-
+                
+            handleWheelOfFortune();
             handleTechtreeSpecificBehaviour();
 
             displayDebugInfo();
@@ -2022,7 +2202,7 @@ function detectPrize()
         trumpAnimation.setActive(true);
         trumpAnimation.manipulateAnimation("teleport", [-800, canvas.height / 2 - 400]);
         trumpAnimation.manipulateAnimation("setFrame", 0);
-        trumpAnimation.behaviour = [["move", 2, 0], ["killSelfOnPositionX", canvas.width]];
+        trumpAnimation.behaviour = [["move", 4, 0], ["killSelfOnPositionX", canvas.width]];
         jackpot.volume = 0.5;
         jackpot.play();
     }
