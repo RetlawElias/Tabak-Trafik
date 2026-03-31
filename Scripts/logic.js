@@ -3,6 +3,7 @@
                      particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip, canvasLabel, pulseEmitter, 
                      pulse, canvasAnimation, canvasTextfield } from "./RetlawsCoolCanvasControls.js";
             import { loadFrames } from "./animationMaster.js";
+            
 
 
             document.addEventListener("mousemove", updateCursorPosition);
@@ -1316,6 +1317,19 @@
                             currentActiveScene = EScenes.FACTORY;
                         }
                     }
+                    else if(e.key === "d" && debug)
+                    {
+                        downloadSaveState({
+                            gameName: gameName, 
+                            cigarettes: cigarettes, 
+                            upgradeCigarettes: upgradeCigarettes, 
+                            premiumCigarettes: premiumCigarettes
+                        });
+                    }
+                    else if(e.key === "r" && debug)
+                    {
+                        loadSaveState();
+                    }
                 });
                     
                 window.addEventListener('resize', function() 
@@ -2319,4 +2333,137 @@ function drawOfficeBackground()
             }
         }
     }
+}
+
+
+function arrayBufferToHex(buffer) {
+    const bytes = new Uint8Array(buffer);
+    return Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+}
+
+function hexToArrayBuffer(hex) {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+    }
+    return bytes.buffer;
+}
+
+async function encryptTextWithPassword(text, password) {
+    const encoder = new TextEncoder();
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw', encoder.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']
+    );
+    const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+        keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+    );
+    const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv }, key, encoder.encode(text)
+    );
+
+    return {
+    cipherText: arrayBufferToHex(encrypted),
+    iv: Array.from(iv),
+    salt: Array.from(salt)
+    };
+}
+
+
+
+async function decryptTextWithPassword(data, password) {
+    const encoder = new TextEncoder();
+
+    const salt = new Uint8Array(data.salt);
+    const iv = new Uint8Array(data.iv);
+    const encryptedBuffer = hexToArrayBuffer(data.cipherText);
+
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveKey']
+    );
+
+    const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt']
+    );
+
+    const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encryptedBuffer
+    );
+
+    return new TextDecoder().decode(decrypted);
+}
+
+async function downloadSaveState(content)
+{
+    console.log(content);
+    const data = await encryptTextWithPassword(JSON.stringify(content), "Password");
+    console.log(data);
+    const blob = new Blob([JSON.stringify(data)], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Tabak-Trafik - " + gameName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+async function loadSaveState() {
+    try {
+        const fileContent = await promptLoadSaveFile();
+
+        const parsed = JSON.parse(fileContent);
+        const decrypted = await decryptTextWithPassword(parsed, "Password");
+        const gameState = JSON.parse(decrypted);
+
+        gameName = JSON.parse(decrypted).gameName;
+        nameLabel.Texture.text = gameName;
+        cigarettes = Number(JSON.parse(decrypted).cigarettes);
+        upgradeCigarettes = Number(JSON.parse(decrypted).upgradeCigarettes);
+        premiumCigarettes = Number(JSON.parse(decrypted).premiumCigarettes);
+
+        console.log("Loaded state:", gameState);
+    } catch (err) {
+        console.error("Failed to load save:", err);
+    }
+}
+
+function promptLoadSaveFile() {
+    return new Promise((resolve, reject) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "*/*"; // or ".sav" if you define an extension
+
+        input.onchange = async (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                reject("No file selected");
+                return;
+            }
+
+            try {
+                const text = await file.text(); // reads as string
+                resolve(text);
+            } catch (err) {
+                reject(err);
+            }
+        };
+
+        input.click();
+    });
 }
