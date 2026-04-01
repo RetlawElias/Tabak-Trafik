@@ -11,6 +11,7 @@
             {
                 startGame();
                 realignGUI();
+                //setInterval(checkAchievementsCollection(), 1000);
             });
 
 
@@ -98,8 +99,6 @@
 
             var partyInterval;
 
-            var WOFbutton;
-
             var audio = new Audio('Audio/Westward.wav');
             var jackpot = new Audio('Audio/winning.mp3');
             var Unbuyable = new Audio('Audio/Unbuyable.wav');
@@ -123,12 +122,15 @@
 
             const introSceneUI = new UIManager();
             const factorySceneUI = new UIManager();
+            const officeSceneUI = new UIManager();
 
             const globalUI = new UIManager();
 
 
             let selectedTextfield = null;
 
+            var allowAudio = false;
+            var allowMusic = false;
 
             let direction = 1;        // 1 = right, -1 = left
             let range = 20;           // max displacement in pixels
@@ -191,25 +193,36 @@
             var machineCostMultipliers = [0,1,1,1,1,1,1,1,1,1];
             var machineLevels = [0,0,0,0,0,0,0,0,0,0];
 
+            var hiringCosts = [10, 25, 50, 100, 200];
 
             //UI
             var upgradeButtons = [];
+            var hiringButtons = [];
             var batchUpgradeButtons = [];
             var stackUpgradeButtons = [];
             var techtreeUpgrades = [];
             
             var techtreePannel;
+            var namePanel;
+            var WOFpanel;
+
+            var achievementPanel;
+            var achievementCollection;
+            
             var techtreeButton;
             var startButton;
             var audioButton;
+            var soundButton;
+            var achievementButton;
             var closeButton;
+            var closeAchievementsButton;
             var claimButton;
-            var WOFpanel;
-            var nameTextfield;
-            var namePanel;
-            var nameLabel;
+            var WOFbutton;
             
+            var nameLabel;
             var prizeLabel;
+            
+            var nameTextfield;
 
             var mousePosition;
             var cursorX;
@@ -355,7 +368,7 @@
                         obj.localY = data.Upgrades[i].Position[1];
 
 
-                        obj.Tooltip = new techtreeUpgradeToolTip(obj.x, obj.y, 200, 400, new canvasButtonTexture("", "Grey", ""), data.Upgrades[i].ToolTip, true, true);
+                        obj.Tooltip = new techtreeUpgradeToolTip(obj.x, obj.y, 200, 400, new canvasButtonTexture("", "rgb(163, 163, 163)", ""), data.Upgrades[i].ToolTip, true, true);
 
                         obj.Tooltip.localX = obj.x + obj.sizeX + 25;
                         obj.Tooltip.localY = obj.y;
@@ -419,7 +432,10 @@
                             }
                             else
                             {
-                                Unbuyable.play();
+                                if(allowAudio)
+                                {
+                                    Unbuyable.play();
+                                }
                             }
                                 
                         }
@@ -477,10 +493,15 @@
                 //Assignment
                 techtreeButton = new canvasButton(myGameArea.canvas.width / 2 - 400, 5, 200, 50, new canvasButtonTexture("", "Grey", "Techtree"), true);
                 startButton = new canvasButton(myGameArea.canvas.width / 2 - 250, 100, 500, 250, new canvasButtonTexture(TextureButton), true);
+                audioButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 60, 50, 50, new canvasButtonTexture("", "Red", "🎵"), true);
+                soundButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 120, 50, 50, new canvasButtonTexture("", "Red", "🔊"), true);
+                achievementButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 180, 50, 50, new canvasButtonTexture("", "rgb(255,255,0)", "🏆"), true);
+                claimButton = new canvasButton(myGameArea.canvas.width / 2 - 200, myGameArea.canvas.height - 300, 400, 200, new canvasButtonTexture("", "Yellow", "Claim!"), true, false);
+                WOFbutton = new canvasButton(myGameArea.canvas.width / 2 + 200, 0, 200, 50, new canvasButtonTexture("", "Purple", "Wheel of Fortune"), true);
+
+
 
                 nameTextfield = new canvasTextfield(myGameArea.canvas.width / 2 - 250, 400, 500, 200, new canvasButtonTexture("", "White", ""), true);
-                nameTextfield.sizeX = myGameArea.canvas.width / 6.5;
-                nameTextfield.sizeY = myGameArea.canvas.height / 10;
                 nameTextfield.maxLength = 30;
                 nameTextfield.onClick = function()
                 {
@@ -495,16 +516,21 @@
                 nameLabel.zPosition = -2;
 
 
-                audioButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 60, 50, 50, new canvasButtonTexture("", "Red", "🎵"), true);
-                claimButton = new canvasButton(myGameArea.canvas.width / 2 - 200, myGameArea.canvas.height - 300, 400, 200, new canvasButtonTexture("", "Yellow", "Claim!"), true, false);
+                
+                
+                
+                achievementPanel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(255, 253, 159, 0.85)"), true);
+                closeAchievementsButton = new canvasButton(achievementPanel.x + achievementPanel.sizeX - 35, achievementPanel.y + 5, 30, 30, new canvasButtonTexture("", "Red", "X"), true);
+                
+                achievementPanel.addChild(closeAchievementsButton);
 
-                techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(240,240,240,0.85)"), true);
-                WOFbutton = new canvasButton(myGameArea.canvas.width / 2 + 200, 0, 200, 50, new canvasButtonTexture("", "Purple", "Wheel of Fortune"), true);
+
+                techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(160, 226, 255, 0.85)"), true);
+                closeButton = new canvasButton(techtreePannel.x + techtreePannel.sizeX - 35, techtreePannel.y + 5, 30, 30, new canvasButtonTexture("", "Red", "X"), true);
                 WOFpanel = new canvasPannel(myGameArea.canvas.width / 2 - 500, 50, 1000, myGameArea.canvas.height - 100, new canvasPannelTexture("", "white"), true);
                 WOFpanel.alpha = 0.8;
                 
 
-                closeButton = new canvasButton(techtreePannel.x + techtreePannel.sizeX - 35, techtreePannel.y + 5, 30, 30, new canvasButtonTexture("", "Red", "X"), true);
                 techtreePannel.addChild(closeButton);
                 
 
@@ -520,19 +546,42 @@
 
 
 
-                //OnClick Functions
-                techtreeButton.onClick = function() {
-                    Chirp.play();
-                    techtreePannel.setActive(true);
-                };
-
-                closeButton.onClick = function() {
+                //OnClick Functions#
+                closeButton.onClick = function() 
+                {
                     techtreePannel.active = false;
 
                     draggingWorld = false;
                     draggingPanel = false;
                     resizingPanel = false;
                 };
+
+                closeAchievementsButton.onClick = function()
+                {
+                    achievementPanel.setActive(false);
+                }
+
+
+                techtreeButton.onClick = function() 
+                {
+                    if(!achievementPanel.active)
+                    {
+                    if(allowAudio)
+                    {
+                        Chirp.play();
+                    }
+                    if(techtreePannel.active)
+                    {
+                        closeButton.onClick();
+                    }
+                    else
+                    {
+                        techtreePannel.setActive(true);
+                    }
+                    }
+                };
+
+                
                                 
 
             
@@ -583,6 +632,22 @@
                     }
                 }
                 
+                achievementButton.onClick = function()
+                {
+                    if(!techtreePannel.active)
+                    {
+                        if(achievementPanel.active)
+                        {
+                            achievementPanel.setActive(false);
+                        }
+                        else
+                        {
+                            achievementPanel.setActive(true);
+                        }
+                    }
+                }
+
+
                 WOFbutton.onClick = function()
                 {
                     if (premiumCigarettes >= 50) {
@@ -595,18 +660,34 @@
                 {
                     console.log("Clicked Audio");
                     
-                    if(!audio.paused)
-                        {
-                            audio.pause();
-                            audioButton.Texture.color = "Red";
-                        }
+                    if(allowMusic)
+                    {
+                        allowMusic = false;
+                        audioButton.Texture.color = "Red";
+                        audio.pause();
+                    }
                     else
-                        {
-                            audio.play();
-                            audioButton.Texture.color = "Green";
-                            audio.volume = 0.2;
-                        }
+                    {
+                        allowMusic = true;
+                        audioButton.Texture.color = "Green";
+                    }
                 }
+
+                soundButton.onClick = function()
+                {
+                    console.log("Audio On");
+                    if(allowAudio)
+                    {
+                        allowAudio = false;
+                        soundButton.Texture.color = "Red";
+                    }
+                    else
+                    {
+                        allowAudio = true;
+                        soundButton.Texture.color = "Green";
+                    }
+                }
+
 
                 claimButton.onClick = function()
                 {
@@ -618,6 +699,7 @@
                     
                 techtreeButton.setActive(false);
                 techtreePannel.setActive(false);
+                achievementPanel.setActive(false);
                 WOFbutton.setActive(false);
 
                 //namePanel.addChild(nameLabel);
@@ -633,9 +715,12 @@
                 globalUI.add(WOFbutton);
                 globalUI.add(techtreeButton);
                 globalUI.add(audioButton);
+                globalUI.add(soundButton);
+                globalUI.add(achievementButton);
                 globalUI.add(nameLabel);
                 globalUI.add(namePanel);
                 globalUI.add(techtreePannel);
+                globalUI.add(achievementPanel);
                 globalUI.add(WOFpanel);
 
                 globalUI.add(trumpAnimation);
@@ -643,6 +728,7 @@
 
                 SceneManager.addScene(EScenes.INTRO, introSceneUI);
                 SceneManager.addScene(EScenes.FACTORY, factorySceneUI);
+                SceneManager.addScene(EScenes.OFFICE, officeSceneUI)
 
                 SceneManager.setGlobalUI(globalUI);
 
@@ -684,8 +770,12 @@
                             );
 
                             factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
-                            const newAudio = new Audio('Audio/Collect.wav');
-                            newAudio.play();
+
+                            if(allowAudio)
+                            {
+                                const newAudio = new Audio('Audio/Collect.wav');
+                                newAudio.play();
+                            }
 
                             cigarettes -= Math.ceil((machineBaseCosts[i] * machineCostMultipliers[i]) / gameState["generalCostReduction"]);
                             upgradeCigarettes += 1;
@@ -769,7 +859,10 @@
                         }
                         else
                         {
-                            Unbuyable.play();
+                            if(allowAudio)
+                            {
+                                Unbuyable.play();
+                            }
                         }
                     }
 
@@ -809,8 +902,11 @@
 
                             factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
-                            const newAudio = new Audio('Audio/Collect.wav');
-                            newAudio.play();
+                            if(allowAudio)
+                            {
+                                const newAudio = new Audio('Audio/Collect.wav');
+                                newAudio.play();
+                            }
 
                             cigarettes -= BatchCost;
                             upgradeCigarettes += 5;
@@ -886,7 +982,10 @@
                         }
                         else
                         {
-                            Unbuyable.play();
+                            if(allowAudio)
+                            {
+                                Unbuyable.play();
+                            }
                         }
                     }
 
@@ -924,8 +1023,11 @@
 
                             factorySceneUI.add(currentActiveParticleEmitter[currentActiveParticleEmitter.length-1]);
 
-                            const newAudio = new Audio('Audio/Collect.wav');
-                            newAudio.play();
+                            if(allowAudio)
+                            {
+                                const newAudio = new Audio('Audio/Collect.wav');
+                                newAudio.play();
+                            }
 
                             cigarettes -= StackCost;
                             upgradeCigarettes += 10;
@@ -999,13 +1101,25 @@
                         }
                         else
                         {
-                            Unbuyable.play();
+                            if(allowAudio)
+                            {
+                                Unbuyable.play();
+                            }
                         }
                     }
 
                     factorySceneUI.add(upgradeButtons[i]);
                     factorySceneUI.add(batchUpgradeButtons[i]);
                     factorySceneUI.add(stackUpgradeButtons[i]);
+                }
+
+
+
+                for(let i = 0; i < 4; i++)
+                {
+                    const x = machineX(i);
+                    hiringButtons[i] = new canvasButton(x + 50, 400, 100, 100, new canvasButtonTexture(TextureUpgrade, "", hiringCosts[i].toString()), false);
+                    officeSceneUI.add(hiringButtons[i]);
                 }
             }
 
@@ -1390,6 +1504,14 @@
                 ctx.strokeStyle = "Black";
                 ctx.fillStyle = "Black";
 
+
+                if(allowMusic && audio.paused)
+                {
+                    audio.volume = 0.3;
+                    audio.play();
+                }
+
+
                 if (!isDragging) 
                 {
                     velocityX *= 0.92;
@@ -1460,7 +1582,17 @@
             
             audioButton.x = myGameArea.canvas.width - 60;
             audioButton.y = myGameArea.canvas.height - 60;
+            soundButton.x = myGameArea.canvas.width - 60;
+            soundButton.y = myGameArea.canvas.height - 120;
+            achievementButton.x = myGameArea.canvas.width - 60;
+            achievementButton.y = myGameArea.canvas.height - 180;
             
+            achievementPanel.x = 33;
+            achievementPanel.y = 63;
+            achievementPanel.sizeX = myGameArea.canvas.width - 90;
+            achievementPanel.sizeY = myGameArea.canvas.height - 90;
+            closeAchievementsButton.x = achievementPanel.x + achievementPanel.sizeX - 35;
+            closeAchievementsButton.y = achievementPanel.y + 10;
             
             techtreeButton.x = myGameArea.canvas.width / 2 - 400;
             namePanel.x = myGameArea.canvas.width / 2 - 140;
@@ -1498,8 +1630,11 @@
                             cigProduction.onClick = function()
                             {
                                 premiumCigarettes += 1 * (i + 1);
-                                const newAudio = new Audio('Audio/Collect.wav');
-                                newAudio.play();
+                                if(allowAudio)
+                                {
+                                    const newAudio = new Audio('Audio/Collect.wav');
+                                    newAudio.play();
+                                }
                             
                                 factorySceneUI.elements.splice(factorySceneUI.elements.indexOf(cigProduction),1);
                                 const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
@@ -1525,8 +1660,12 @@
                             cigProduction.onClick = function()
                             {
                                 cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"] * 200;
-                                const newAudio = new Audio('Audio/Collect.wav');
-                                newAudio.play();
+
+                                if(allowAudio)
+                                {
+                                    const newAudio = new Audio('Audio/Collect.wav');
+                                    newAudio.play();
+                                }
                             
                                 factorySceneUI.elements.splice(factorySceneUI.elements.indexOf(cigProduction),1);
                                 const index = animatedCigarettes.findIndex(entry => entry.obj === cigProduction);
@@ -1720,6 +1859,9 @@
                 
                 cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"];
                 break;
+                case EScenes.OFFICE:
+                    drawCurrencyPanel();
+                    break;
             }
             if(gameStarted)
             {
@@ -1914,6 +2056,7 @@
             ctx.fillStyle = "rgba(255,255,255,0.33)";
             ctx.fillRect(canvas.width + CIGARETTESPANELOFFSET + 75, 0, 175, 200);
 
+            ctx.globalAlpha = 1;
             ctx.drawImage(cigarettesTexture, canvas.width + CIGARETTESPANELOFFSET + 200, 5, 50, 50);
             ctx.drawImage(upgradeCigarettesTexture, canvas.width + CIGARETTESPANELOFFSET + 200, 65, 50, 50);
             ctx.drawImage(premiumCigarettesTexture, canvas.width + CIGARETTESPANELOFFSET + 200, 125, 50, 50);
@@ -2184,11 +2327,11 @@ function detectPrize()
     let prize = segments[index];
     
     switch(prize) {
-        case "100 Cigarettes":  cigarettes += 100; Win.play();  break;
-        case "50 Cigarettes":   cigarettes += 50; Win.play();   break;
-        case "150 Cigarettes":  cigarettes += 150; Win.play();  break;
-        case "200 Cigarettes":  cigarettes += 200; Win.play();  break;
-        case "75 Cigarettes":   cigarettes += 75; Win.play();   break;
+        case "100 Cigarettes":  cigarettes += 100; if(allowAudio){Win.play()};  break;
+        case "50 Cigarettes":   cigarettes += 50; if(allowAudio){Win.play()};   break;
+        case "150 Cigarettes":  cigarettes += 150; if(allowAudio){Win.play()};  break;
+        case "200 Cigarettes":  cigarettes += 200; if(allowAudio){Win.play()};  break;
+        case "75 Cigarettes":   cigarettes += 75; if(allowAudio){Win.play()};   break;
         case "Spin Again":
             prizeLabel.Texture.text = "Spin Again!";
             prizeLabel.setActive(true);
@@ -2218,7 +2361,10 @@ function detectPrize()
         trumpAnimation.manipulateAnimation("setFrame", 0);
         trumpAnimation.behaviour = [["move", 4, 0], ["killSelfOnPositionX", canvas.width]];
         jackpot.volume = 0.5;
-        jackpot.play();
+        if(allowMusic)
+        {
+            jackpot.play();
+        }
     }
 
     if(prize === "Spin Again")
@@ -2431,6 +2577,7 @@ async function loadSaveState() {
         const decrypted = await decryptTextWithPassword(parsed, "Password");
         const gameState = JSON.parse(decrypted);
 
+        // Setting of varriables from Savestate!!!
         gameName = JSON.parse(decrypted).gameName;
         nameLabel.Texture.text = gameName;
         cigarettes = Number(JSON.parse(decrypted).cigarettes);
@@ -2465,5 +2612,30 @@ function promptLoadSaveFile() {
         };
 
         input.click();
+    });
+}
+
+function checkAchievementsCollection()
+{
+    achievementCollection.forEach(achievement => {
+        achievement.forEach(effect => {
+
+                const target = effect.target;
+
+                switch (effect.operation) {
+
+                    case "add":
+                        gameState[target] += effect.value;
+                        break;
+
+                    case "multiply":
+                        gameState[target] *= effect.value;
+                        break;
+
+                    case "set":
+                        gameState[target] = effect.value;
+                        break;
+                }
+            });
     });
 }

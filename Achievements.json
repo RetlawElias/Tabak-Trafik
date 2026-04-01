@@ -1,0 +1,17 @@
+{
+  "Achievements": [
+    {
+      "Name": "Freebie",
+      "Position": [50, 50],
+      "Size": [100, 100],
+      "ToolTip": "will maybe find some usage later on",
+      "Condition": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    }
+  ]
+}
