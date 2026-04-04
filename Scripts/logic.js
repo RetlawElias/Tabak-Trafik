@@ -11,18 +11,16 @@
             {
                 startGame();
                 realignGUI();
+                loadFactoryBitmap();
+                loadOfficeBitmap();
                 //setInterval(checkAchievementsCollection(), 1000);
             });
 
 
 
-            const backgroundDetail = 92;
             const WORLD_WIDTH = 10000;
             const TECHTREE_WIDTH = 1000;
-            const MACHINE_START_POSITION = 200 // position of first machine
-            const MACHINE_GAP = 1100; // space between machines
             const VIEW_WIDTH = canvas.width;
-            const CIGARETTESPANELOFFSET = -300;
             
             
             // Wheel of fortune prizes 
@@ -108,6 +106,8 @@
             var Chirp = new Audio('Audio/Chirp.wav')
 
 
+            let factoryAnimationAlignmentManager = [];
+      
 
             const EScenes = Object.freeze(
                 { 
@@ -127,6 +127,10 @@
             const globalUI = new UIManager();
 
 
+            let officeBitMap = [];
+            let factoryBitMap = [];
+
+
             let selectedTextfield = null;
 
             var allowAudio = false;
@@ -138,7 +142,12 @@
             let startScreenFadingIterator = 0;
             let preGameLoadupIterator = 250;
             
-            
+            var screenWidth = screen.width;
+            var screenHeight = screen.height;
+            var canvasWidth = 0;
+            var canvasHeight = 0;
+
+
             let lastTime = performance.now();
             
             let offsettingPanel = false;
@@ -254,6 +263,19 @@
             const bricksGround = document.getElementById("BricksGround");
             const bricksGroundBordered = document.getElementById("BricksGroundBordered");
             const bricksTransition = document.getElementById("BricksTransition");
+
+            const officeGround1 = document.getElementById("OfficeGround1");
+            const officeGround2 = document.getElementById("OfficeGround2");
+
+            const officeWall1 = document.getElementById("OfficeWall1");
+            const officeWall2 = document.getElementById("OfficeWall2");
+            const officeWall3 = document.getElementById("OfficeWall3");
+            const officeWall4 = document.getElementById("OfficeWall4");
+
+            const officeWindow1 = document.getElementById("OfficeWindow1");
+            const officeWindow2 = document.getElementById("OfficeWindow2");
+            const officeWindow3 = document.getElementById("OfficeWindow3");
+            const officeWindow4 = document.getElementById("OfficeWindow4");
 
 
             // Animated Textures
@@ -852,6 +874,9 @@
                                 factorySceneUI.add(machineAnimation);
                                 factorySceneUI.add(conveyerAnimation);
                                 factorySceneUI.add(boxAnimation);
+
+                                factoryAnimationAlignmentManager.push([i, machineAnimation, conveyerAnimation, boxAnimation]);
+                                realignGUI();
                             }
 
                             machineCostMultipliers[i] *= 1.1;
@@ -975,6 +1000,9 @@
                                 factorySceneUI.add(machineAnimation);
                                 factorySceneUI.add(conveyerAnimation);
                                 factorySceneUI.add(boxAnimation);
+
+                                factoryAnimationAlignmentManager.push([i, machineAnimation, conveyerAnimation, boxAnimation]);
+                                realignGUI();
                             }
 
                             machineLevels[i] += 5;
@@ -1094,6 +1122,9 @@
                                 factorySceneUI.add(machineAnimation);
                                 factorySceneUI.add(conveyerAnimation);
                                 factorySceneUI.add(boxAnimation);
+
+                                factoryAnimationAlignmentManager.push([i, machineAnimation, conveyerAnimation, boxAnimation]);
+                                realignGUI();
                             }
 
                             machineLevels[i] += 10;
@@ -1410,6 +1441,7 @@
                     {
                         smokinAnimation.sizeX = canvas.width;
                         smokinAnimation.sizeY = canvas.height;
+                        smokinAnimation.finished = false;
                         smokinAnimation.setActive(true);
                         smokinAnimation.manipulateAnimation("setFrame", 0);
                     }
@@ -1450,6 +1482,10 @@
                 {
                     document.getElementById("canvas").width = window.innerWidth;
                     document.getElementById("canvas").height = window.innerHeight;
+                    screenWidth = screen.width;
+                    screenHeight = screen.height;
+
+                    console.log(screenWidth + ", " + screenHeight);
                     realignGUI();
                 });
             }
@@ -1493,6 +1529,16 @@
                     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 }
             }
+
+
+            async function getZoomLevel() 
+            {
+                const screenDetails = await getScreenDetails();
+                const zoomLevel = window.devicePixelRatio / screenDetails.currentScreen.devicePixelRatio;
+                console.log(`Zoom level: ${zoomLevel * 100}%`);
+                return zoomLevel;
+            }
+                
 
 
 
@@ -1542,8 +1588,74 @@
 
 
 
+
+        function loadFactoryBitmap()
+        {
+            factoryBitMap = [];
+
+            for(let j = 0; j < 11; j++)
+            {
+                let tmpArray = [];
+
+                if(j >= 7)
+                {
+                    if(j == 7)
+                    {
+                        for(let i = 0; i < 120; i++)
+                        {
+                            tmpArray.push('G');
+                        }
+                    }
+                    else
+                    {
+                        for(let i = 0; i < 120; i++)
+                        {
+                            tmpArray.push('g');
+                        }
+                    }
+
+                    factoryBitMap.push(tmpArray);
+                }
+                else
+                {
+                    for(let i = 0; i < 120; i++)
+                    {
+                        tmpArray.push('w');
+                    }
+
+                    factoryBitMap.push(tmpArray);
+                }
+
+            }
+        }
+
+
         function drawFactoryBackground()
         {
+            for(let j = 0; j < 11; j++)
+            {
+                for(let i = 0; i < 120; i++)
+                {
+                    switch(factoryBitMap[j][i])
+                    {
+                        case 'G':
+                            ctx.drawImage(bricksGroundBordered, (canvasHeight / 10) * i - 1 * i, (canvasHeight / 10) * j - 1 * j, (canvasHeight / 10), (canvasHeight / 10));
+                            break;
+                        case 'g':
+                            ctx.drawImage(bricksGround, (canvasHeight / 10) * i - 1 * i, (canvasHeight / 10) * j - 1 * j, (canvasHeight / 10), (canvasHeight / 10));
+                            break;
+                        case 'w':
+                            ctx.drawImage(bricks, (canvasHeight / 10) * i - 1 * i, (canvasHeight / 10) * j - 1 * j, (canvasHeight / 10), (canvasHeight / 10));
+                            break;
+                    }
+                }
+            }
+
+
+            
+            /*    !!! Obsolete Drawing System (Keep because the current Approach is absolutely fucked)  !!!!
+
+
             for(let j = 0; j < (WORLD_WIDTH + myGameArea.canvas.width) / backgroundDetail; j++)
             {
                 for(let i = 0; i < myGameArea.canvas.height / backgroundDetail + 1; i++)
@@ -1561,43 +1673,403 @@
                         ctx.drawImage(bricksGround, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
                     }
                 }
-            }
+            }*/
         }
 
+        function loadOfficeBitmap()
+        {
+            officeBitMap = [];
+            let explicitWallSection = [];
+
+            for(let i = 0; i < 80; i++)
+            {
+                if(Math.floor(Math.random() * 15) == 0)
+                {
+                    explicitWallSection.push(i);
+                    explicitWallSection.push(i + 1);
+                    explicitWallSection.push(i + 2);
+                    explicitWallSection.push(i + 3);
+                    explicitWallSection.push(i + 4);
+                    i += 4;
+                }
+            }
+
+            for(let j = -1; j < 8; j++)
+            {
+                let tmpArray = [];
+
+
+                if(j >= 6)
+                {
+                    if(j == 7)
+                    {
+                        for(let i = 0; i < 80; i++)
+                        {
+                            tmpArray.push('g');
+                        }
+                    }
+                    else
+                    {
+                        for(let i = 0; i < 80; i++)
+                        {
+                            tmpArray.push('G');
+                        }
+                    }
+
+                    officeBitMap.push(tmpArray);
+                }
+                else
+                {
+
+                    if(j % 9 == 4)
+                    {
+                        for(let i = 0; i < 80; i++)
+                        {
+                            tmpArray.push('S');
+                        }
+                    }
+                    else
+                    {
+                        if(j % 9 == 0)
+                        {
+                            for(let i = 0; i < 80; i++)
+                            {
+                                tmpArray.push('S');
+                            }
+                        }
+                        else if(j % 9 == 1)
+                        {
+                            for(let i = 0; i < 80; i++)
+                            {
+                                tmpArray.push('G');
+                            }
+                        }
+                        else if(j % 9 == 2)
+                        {
+                            for(let i = 0; i < 80; i++)
+                            {
+                                tmpArray.push('g');
+                            }
+                        }
+                        else if(j % 9 == 3 || j % 9 == -1)
+                        {
+                            for(let i = 0; i < 80; i++)
+                            {
+                                if(explicitWallSection.includes(i))
+                                {
+                                    if(Math.floor(Math.random() * 10) == 0)
+                                    {
+                                        tmpArray.push('B');
+                                        continue;
+                                    }
+                                    if(Math.floor(Math.random() * 10) == 0)
+                                    {
+                                        tmpArray.push('H');
+                                        continue;
+                                    }
+                                    if(Math.floor(Math.random() * 10) == 0)
+                                    {
+                                        tmpArray.push('b');
+                                        continue;
+                                    }
+
+                                    tmpArray.push('h');
+                                }
+                                else
+                                {
+                                    if(Math.floor(Math.random() * 10) == 0)
+                                    {
+                                        tmpArray.push('W');
+                                        continue;
+                                    }
+                                    if(Math.floor(Math.random() * 10) == 0)
+                                    {
+                                        tmpArray.push('f');
+                                        continue;
+                                    }
+                                    if(Math.floor(Math.random() * 10) == 0)
+                                    {
+                                        tmpArray.push('F');
+                                        continue;
+                                    }
+
+                                    tmpArray.push('w');
+                                }
+                            }
+                        }
+                        else if(j % 9 == 5)
+                        {
+                            for(let i = 0; i < 80; i++)
+                            {
+                                tmpArray.push('G');
+                            }
+                        }
+                        else if(j % 9 == 6)
+                        {
+                            for(let i = 0; i < 80; i++)
+                            {
+                                tmpArray.push('G');
+                            }
+                        }
+                        else if(j % 9 == 7)
+                        {
+                            for(let i = 0; i < 80; i++)
+                            {
+                                tmpArray.push('g');
+                            }
+                        }
+                        
+                    }
+
+                    
+
+                    officeBitMap.push(tmpArray);
+                }
+
+            }
+
+            
+
+            /*  
+            *   'g' = ground1
+            *   'G' = ground2
+            *   'w' = window1
+            *   'W' = window2
+            *   'f' = window3
+            *   'F' = window4
+            *   'h' = wall1  
+            *   'H' = wall2
+            *   'b' = wall3
+            *   'B' = wall4
+            * 
+            *   'S' = skip
+            */
+        }
+
+
+        function drawOfficeBackground()
+        {
+            ctx.fillStyle = "rgb(190, 214, 255)";
+            ctx.fillRect(0,0,20000, canvas.height);
+            
+            
+
+            for(let j = -1; j < 8; j++)
+            {
+                for(let i = 0; i < 80; i++)
+                {
+                    switch(officeBitMap[j+1][i])
+                    {
+                        case 'g':
+                            ctx.drawImage(officeGround1, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7));
+                            break;
+                        case 'G':
+                            ctx.drawImage(officeGround2, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7));
+                            break;
+                        case 'w':
+                            ctx.drawImage(officeWindow1, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7) * 2);
+                            break;
+                        case 'W':
+                            ctx.drawImage(officeWindow2, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7) * 2);
+                            break;
+                        case 'f':
+                            ctx.drawImage(officeWindow3, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7) * 2);
+                            break;
+                        case 'F':
+                            ctx.drawImage(officeWindow4, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7) * 2);
+                            break;
+                        case 'h':
+                            ctx.drawImage(officeWall1, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7) * 2);
+                            break;
+                        case 'H':
+                            ctx.drawImage(officeWall2, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7) * 2);
+                            break;
+                        case 'b':
+                            ctx.drawImage(officeWall3, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7) * 2);
+                            break;
+                        case 'B':
+                            ctx.drawImage(officeWall4, (canvasHeight / 7) * i - 1 * i, (canvasHeight / 7) * j - 1 * j, (canvasHeight / 7), (canvasHeight / 7) * 2);
+                            break;
+                        case 'S':
+                            break;
+                    }
+
+                    /*  
+                    *   'g' = ground1
+                    *   'G' = ground2
+                    *   'w' = window1
+                    *   'W' = window2
+                    *   'f' = window3
+                    *   'F' = window4
+                    *   'h' = wall1  
+                    *   'H' = wall2
+                    *   'b' = wall3
+                    *   'B' = wall4
+                    * 
+                    *   'S' = skip
+                    */
+                }
+            }
+                    
+                        
+
+
+
+
+                        /*
+                        if(i + 3 < myGameArea.canvas.height / backgroundDetail)
+                        {
+                            if(i % 5 == 0 || i % 5 == 1)
+                            {
+                                ctx.fillStyle = "rgb(179, 179, 255)";
+                                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                                //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                            }
+                            else
+                            {
+                                ctx.fillStyle = "White";
+                                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                                //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                            }
+                        }
+                        else if(i + 2 < myGameArea.canvas.height / backgroundDetail)
+                        {
+                            ctx.fillStyle = "Grey";
+                            ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                            //ctx.drawImage(bricksGroundBordered, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                        }
+                        else
+                        {
+                            ctx.fillStyle = "Black";
+                            ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                            //ctx.drawImage(bricksGround, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
+                        }*/
+            
+        }
+            
 
 
         function realignGUI()
         {
-            startButton.x = myGameArea.canvas.width / 2 - (myGameArea.canvas.width / 4 / 2);
-            startButton.sizeX = myGameArea.canvas.width / 4;
-            startButton.sizeY = myGameArea.canvas.height / 4;
+            canvasWidth = canvas.width;
+            canvasHeight = canvas.height;
 
-            nameTextfield.sizeX = myGameArea.canvas.width / 7.8;
-            nameTextfield.sizeY = myGameArea.canvas.height / 11;
+
+            startButton.x = canvasWidth / 2 - (canvasWidth / 4 / 2);
+            startButton.sizeX = canvasWidth / 4;
+            startButton.sizeY = canvasHeight / 4;
+
+            nameTextfield.sizeX = canvasWidth / 7.8;
+            nameTextfield.sizeY = canvasHeight / 11;
+
+            techtreePannel.sizeX = canvasWidth / 1.1;
+            techtreePannel.sizeY = canvasHeight / 1.1;
+            techtreePannel.x = canvasWidth / 30;
+            techtreePannel.y = canvasHeight / 30;
+
+            techtreeUpgrades.forEach(element => {
+                element.x = canvasWidth / 2;
+                element.y = 0;
+                element.sizeX = canvasWidth / 16;
+                element.sizeY = canvasHeight / 20;
+                element.Tooltip.sizeX = canvasWidth / 5;
+                element.Tooltip.sizeY = canvasWidth / 5;
+            });
+
+            // God forgive me
+            for(let i = 0; i < upgradeButtons.length; i++)
+            {
+                upgradeButtons[i].x = machineX(i);
+                upgradeButtons[i].y = canvasHeight / 3;
+                upgradeButtons[i].sizeX = canvasWidth / 20;
+                upgradeButtons[i].sizeY = canvasWidth / 20;
+                batchUpgradeButtons[i].x = machineX(i);
+                batchUpgradeButtons[i].sizeX = upgradeButtons[i].sizeX / 2;
+                batchUpgradeButtons[i].sizeY = canvasHeight / 40;
+                batchUpgradeButtons[i].y = canvasHeight / 3 - batchUpgradeButtons[i].sizeY;
+                stackUpgradeButtons[i].x = machineX(i) + batchUpgradeButtons[i].sizeX;
+                stackUpgradeButtons[i].sizeX = upgradeButtons[i].sizeX / 2;
+                stackUpgradeButtons[i].sizeY = canvasHeight / 40;
+                stackUpgradeButtons[i].y = canvasHeight / 3 - batchUpgradeButtons[i].sizeY;
+            }
+
+            for(let i = 0; i < factoryAnimationAlignmentManager.length; i++)
+            {
+                factoryAnimationAlignmentManager[i][1].x = machineX(factoryAnimationAlignmentManager[i][0]) - upgradeButtons[factoryAnimationAlignmentManager[i][0]].sizeX / 1.5;
+                factoryAnimationAlignmentManager[i][1].y = canvasHeight / 2.5;
+                factoryAnimationAlignmentManager[i][1].sizeX = canvasWidth / 8;
+                factoryAnimationAlignmentManager[i][1].sizeY = canvasHeight / 2.2;
+                factoryAnimationAlignmentManager[i][2].x = machineX(factoryAnimationAlignmentManager[i][0]) + factoryAnimationAlignmentManager[i][1].sizeX / 2;
+                factoryAnimationAlignmentManager[i][2].y = canvasHeight / 1.6;
+                factoryAnimationAlignmentManager[i][2].sizeX = canvasWidth / 4;
+                factoryAnimationAlignmentManager[i][2].sizeY = canvasHeight / 4.2;
+                factoryAnimationAlignmentManager[i][3].x = machineX(factoryAnimationAlignmentManager[i][0]) + factoryAnimationAlignmentManager[i][1].sizeX / 2 + factoryAnimationAlignmentManager[i][2].sizeX / 1.54;
+                factoryAnimationAlignmentManager[i][3].y = canvasHeight / 1.45;
+                factoryAnimationAlignmentManager[i][3].sizeX = canvasWidth / 8;
+                factoryAnimationAlignmentManager[i][3].sizeY = canvasHeight / 4;
+            }
+
+
+
+            // Thats gonna be a hell on its own...
+            animatedCigarettes = [];
+
+
+
+
+            trumpAnimation.y = canvasHeight / 8;
+            trumpAnimation.sizeX = canvasWidth / 4;
+            trumpAnimation.sizeY = canvasHeight / 1.5;
             
+            smokinAnimation.x = 0;
+            smokinAnimation.y = 0;
+            smokinAnimation.sizeX = canvasWidth;
+            smokinAnimation.sizeY = canvasHeight;
 
-
-            techtreePannel.sizeX = myGameArea.canvas.width - 100;
-            techtreePannel.sizeY = myGameArea.canvas.height - 100;
             
-            audioButton.x = myGameArea.canvas.width - 60;
-            audioButton.y = myGameArea.canvas.height - 60;
-            soundButton.x = myGameArea.canvas.width - 60;
-            soundButton.y = myGameArea.canvas.height - 120;
-            achievementButton.x = myGameArea.canvas.width - 60;
-            achievementButton.y = myGameArea.canvas.height - 180;
+            audioButton.sizeX = canvasWidth / 40;
+            audioButton.sizeY = canvasWidth / 40;
+            audioButton.x = canvasWidth - audioButton.sizeX - 2;
+            audioButton.y = canvasHeight - audioButton.sizeY - 2;
+
+            soundButton.sizeX = canvasWidth / 40;
+            soundButton.sizeY = canvasWidth / 40;
+            soundButton.x = canvasWidth - soundButton.sizeX - 2;
+            soundButton.y = canvasHeight - soundButton.sizeY - audioButton.sizeY - 6;
+
+            achievementButton.sizeX = canvasWidth / 40;
+            achievementButton.sizeY = canvasWidth / 40;
+            achievementButton.x = canvasWidth - achievementButton.sizeX - 2;
+            achievementButton.y = canvasHeight - soundButton.sizeY - audioButton.sizeY - achievementButton.sizeY - 10;
             
             achievementPanel.x = 33;
             achievementPanel.y = 63;
-            achievementPanel.sizeX = myGameArea.canvas.width - 90;
-            achievementPanel.sizeY = myGameArea.canvas.height - 90;
+            achievementPanel.sizeX = canvasWidth - 90;
+            achievementPanel.sizeY = canvasHeight - 90;
+
             closeAchievementsButton.x = achievementPanel.x + achievementPanel.sizeX - 35;
             closeAchievementsButton.y = achievementPanel.y + 10;
             
-            techtreeButton.x = myGameArea.canvas.width / 2 - 400;
-            namePanel.x = myGameArea.canvas.width / 2 - 140;
-            nameLabel.x = myGameArea.canvas.width / 2 - 140;
-            WOFbutton.x = myGameArea.canvas.width / 2 + 200;
+            
+            namePanel.sizeX = canvasWidth / 8;
+            namePanel.sizeY = canvasHeight / 20;
+            namePanel.x = canvasWidth / 2 - namePanel.sizeX / 2;
+            namePanel.y = 5;
+            
+            nameLabel.sizeX = canvasWidth / 8;
+            nameLabel.sizeY = canvasHeight / 20;
+            nameLabel.x = canvasWidth / 2 - nameLabel.sizeX / 2;
+            nameLabel.y = 5;
+            
+            techtreeButton.sizeX = canvasWidth / 10
+            techtreeButton.sizeY = canvasHeight / 25;
+            techtreeButton.x = canvasWidth / 2 - namePanel.sizeX - techtreeButton.sizeX;
+            techtreeButton.y = 5;
+
+            WOFbutton.sizeX = canvasWidth / 10;
+            WOFbutton.sizeY = canvasHeight / 25;
+            WOFbutton.x = canvasWidth / 2 + namePanel.sizeX;
+            WOFbutton.y = 5;
         }
         
 
@@ -2054,45 +2526,53 @@
         function drawCurrencyPanel()
         {
             ctx.fillStyle = "rgba(255,255,255,0.33)";
-            ctx.fillRect(canvas.width + CIGARETTESPANELOFFSET + 75, 0, 175, 200);
+            ctx.fillRect(canvasWidth - canvasWidth / 9 - 2, 2, canvasWidth / 9, canvasHeight / 4);
 
             ctx.globalAlpha = 1;
-            ctx.drawImage(cigarettesTexture, canvas.width + CIGARETTESPANELOFFSET + 200, 5, 50, 50);
-            ctx.drawImage(upgradeCigarettesTexture, canvas.width + CIGARETTESPANELOFFSET + 200, 65, 50, 50);
-            ctx.drawImage(premiumCigarettesTexture, canvas.width + CIGARETTESPANELOFFSET + 200, 125, 50, 50);
+            ctx.drawImage(cigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 50, canvasWidth / 30, canvasWidth / 30);
+            ctx.drawImage(upgradeCigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 12, canvasWidth / 30, canvasWidth / 30);
+            ctx.drawImage(premiumCigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 7, canvasWidth / 30, canvasWidth / 30);
             ctx.fillStyle = "rgba(0,0,0,1)";
-            ctx.font = "28px Titanic";
+
+            ctx.font = `${Math.round(canvasHeight / 33)}px Titanic`;
             ctx.textAlign = "left";
             ctx.textBaseline = "middle"; // center aint a valid value here...lovely javascript
             ctx.strokeStyle = "Black";
+
+            let textX = canvasWidth - canvasWidth / 9.5;
+            let textSizeX = canvasWidth - canvasWidth / 30 - 2 - textX;
+            let textY0 = canvasHeight / 16;
+            let textY1 = canvasHeight / 8;
+            let textY2 = canvasHeight / 5.5;
+            
 
 
             // Normal Cigarettes
             switch (true) 
             {
                 case cigarettes > 1000000000000000000000:
-                    ctx.fillText((cigarettes / 1000000000000000000000).toFixed(2) + "Sxl", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    ctx.fillText((cigarettes / 1000000000000000000000).toFixed(2) + "Sxl", textX, textY0, textSizeX);
                     break;
                 case cigarettes > 1000000000000000000:
-                    ctx.fillText((cigarettes / 1000000000000000000).toFixed(2) + "Qil", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    ctx.fillText((cigarettes / 1000000000000000000).toFixed(2) + "Qil", textX, textY0, textSizeX);
                     break;
                 case cigarettes > 1000000000000000:
-                    ctx.fillText((cigarettes / 1000000000000000).toFixed(2) + "Qal", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    ctx.fillText((cigarettes / 1000000000000000).toFixed(2) + "Qal", textX, textY0, textSizeX);
                     break;
                 case cigarettes > 1000000000000:
-                    ctx.fillText((cigarettes / 1000000000000).toFixed(2) + "Trl", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    ctx.fillText((cigarettes / 1000000000000).toFixed(2) + "Trl", textX, textY0), textSizeX;
                     break;
                 case cigarettes > 1000000000:
-                    ctx.fillText((cigarettes / 1000000000).toFixed(2) + "Bil", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    ctx.fillText((cigarettes / 1000000000).toFixed(2) + "Bil", textX, textY0, textSizeX);
                     break;
                 case cigarettes > 1000000:
-                    ctx.fillText((cigarettes / 1000000).toFixed(2) + "Mil", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    ctx.fillText((cigarettes / 1000000).toFixed(2) + "Mil", textX, textY0, textSizeX);
                     break;
                 case cigarettes > 1000:
-                    ctx.fillText((cigarettes / 1000).toFixed(2) + "Tsd", canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    ctx.fillText((cigarettes / 1000).toFixed(2) + "Tsd", textX, textY0, textSizeX);
                     break;
                 default:
-                    ctx.fillText(Math.floor(cigarettes), canvas.width + CIGARETTESPANELOFFSET + 80, 42);
+                    ctx.fillText(Math.floor(cigarettes), textX, textY0, textSizeX);
                     break;
             }
 
@@ -2100,28 +2580,28 @@
             switch (true) 
             {
                 case upgradeCigarettes > 1000000000000000000000:
-                    ctx.fillText((upgradeCigarettes / 1000000000000000000000).toFixed(2) + "Sxl", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    ctx.fillText((upgradeCigarettes / 1000000000000000000000).toFixed(2) + "Sxl", textX, textY1, textSizeX);
                     break;
                 case upgradeCigarettes > 1000000000000000000:
-                    ctx.fillText((upgradeCigarettes / 1000000000000000000).toFixed(2) + "Qil", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    ctx.fillText((upgradeCigarettes / 1000000000000000000).toFixed(2) + "Qil", textX, textY1, textSizeX);
                     break;
                 case upgradeCigarettes > 1000000000000000:
-                    ctx.fillText((upgradeCigarettes / 1000000000000000).toFixed(2) + "Qal", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    ctx.fillText((upgradeCigarettes / 1000000000000000).toFixed(2) + "Qal", textX, textY1, textSizeX);
                     break;
                 case upgradeCigarettes > 1000000000000:
-                    ctx.fillText((upgradeCigarettes / 1000000000000).toFixed(2) + "Trl", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    ctx.fillText((upgradeCigarettes / 1000000000000).toFixed(2) + "Trl", textX, textY1, textSizeX);
                     break;
                 case upgradeCigarettes > 1000000000:
-                    ctx.fillText((upgradeCigarettes / 1000000000).toFixed(2) + "Bil", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    ctx.fillText((upgradeCigarettes / 1000000000).toFixed(2) + "Bil", textX, textY1, textSizeX);
                     break;
                 case upgradeCigarettes > 1000000:
-                    ctx.fillText((upgradeCigarettes / 1000000).toFixed(2) + "Mil", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    ctx.fillText((upgradeCigarettes / 1000000).toFixed(2) + "Mil", textX, textY1, textSizeX);
                     break;
                 case upgradeCigarettes > 1000:
-                    ctx.fillText((upgradeCigarettes / 1000).toFixed(2) + "Tsd", canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    ctx.fillText((upgradeCigarettes / 1000).toFixed(2) + "Tsd", textX, textY1, textSizeX);
                     break;
                 default:
-                    ctx.fillText(upgradeCigarettes, canvas.width + CIGARETTESPANELOFFSET + 80, 102);
+                    ctx.fillText(upgradeCigarettes, textX, textY1, textSizeX);
                     break;
             }
 
@@ -2129,28 +2609,28 @@
             switch (true) 
             {
                 case premiumCigarettes > 1000000000000000000000:
-                    ctx.fillText((premiumCigarettes / 1000000000000000000000).toFixed(2) + "Sxl", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    ctx.fillText((premiumCigarettes / 1000000000000000000000).toFixed(2) + "Sxl", textX, textY2, textSizeX);
                     break;
                 case premiumCigarettes > 1000000000000000000:
-                    ctx.fillText((premiumCigarettes / 1000000000000000000).toFixed(2) + "Qil", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    ctx.fillText((premiumCigarettes / 1000000000000000000).toFixed(2) + "Qil", textX, textY2, textSizeX);
                     break;
                 case premiumCigarettes > 1000000000000000:
-                    ctx.fillText((premiumCigarettes / 1000000000000000).toFixed(2) + "Qal", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    ctx.fillText((premiumCigarettes / 1000000000000000).toFixed(2) + "Qal", textX, textY2, textSizeX);
                     break;
                 case premiumCigarettes > 1000000000000:
-                    ctx.fillText((premiumCigarettes / 1000000000000).toFixed(2) + "Trl", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    ctx.fillText((premiumCigarettes / 1000000000000).toFixed(2) + "Trl", textX, textY2, textSizeX);
                     break;
                 case premiumCigarettes > 1000000000:
-                    ctx.fillText((premiumCigarettes / 1000000000).toFixed(2) + "Bil", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    ctx.fillText((premiumCigarettes / 1000000000).toFixed(2) + "Bil", textX, textY2, textSizeX);
                     break;
                 case premiumCigarettes > 1000000:
-                    ctx.fillText((premiumCigarettes / 1000000).toFixed(2) + "Mil", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    ctx.fillText((premiumCigarettes / 1000000).toFixed(2) + "Mil", textX, textY2, textSizeX);
                     break;
                 case premiumCigarettes > 1000:
-                    ctx.fillText((premiumCigarettes / 1000).toFixed(2) + "Tsd", canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    ctx.fillText((premiumCigarettes / 1000).toFixed(2) + "Tsd", textX, textY2, textSizeX);
                     break;
                 default:
-                    ctx.fillText(premiumCigarettes, canvas.width + CIGARETTESPANELOFFSET + 80, 162);
+                    ctx.fillText(premiumCigarettes, textX, textY2, textSizeX);
                     break;
             }
         }
@@ -2222,7 +2702,7 @@
         }
 
         function machineX(i) {
-            return MACHINE_START_POSITION + MACHINE_GAP * i;
+            return canvasWidth / 8 + canvasWidth / 2 * i;
         }
 
         function overResizeHandle(mx, my) {
@@ -2416,70 +2896,6 @@ function handleWheelOfFortune()
     }
 }
 
-
-function drawOfficeBackground()
-{
-    for(let j = 0; j < (WORLD_WIDTH + myGameArea.canvas.width) / backgroundDetail; j++)
-    {
-        if(j % 4 == 2 || j % 4 == 3)
-        {
-            for(let i = 0; i < myGameArea.canvas.height / backgroundDetail; i++)
-            {
-            if(i + 3 < myGameArea.canvas.height / backgroundDetail)
-            {
-                if(i % 5 == 0 || i % 5 == 1)
-                {
-                    ctx.fillStyle = "rgb(179, 179, 255)";
-                    ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                    //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                }
-                else
-                {
-                    ctx.fillStyle = "White";
-                    ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                    //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                }
-            }
-            else if(i + 2 < myGameArea.canvas.height / backgroundDetail)
-            {
-                ctx.fillStyle = "Grey";
-                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                //ctx.drawImage(bricksGroundBordered, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-            }
-            else
-            {
-                ctx.fillStyle = "Black";
-                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                //ctx.drawImage(bricksGround, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-            }
-            }
-        }
-        else
-        {
-            for(let i = 0; i < myGameArea.canvas.height / backgroundDetail; i++)
-            {
-            if(i + 3 < myGameArea.canvas.height / backgroundDetail)
-            {
-                ctx.fillStyle = "White";
-                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-            }
-            else if(i + 2 < myGameArea.canvas.height / backgroundDetail)
-            {
-                ctx.fillStyle = "Grey";
-                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                //ctx.drawImage(bricksGroundBordered, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-            }
-            else
-            {
-                ctx.fillStyle = "Black";
-                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                //ctx.drawImage(bricksGround, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-            }
-            }
-        }
-    }
-}
 
 
 function arrayBufferToHex(buffer) {
