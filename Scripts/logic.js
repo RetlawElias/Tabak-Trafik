@@ -2012,7 +2012,12 @@
 
 
             // Thats gonna be a hell on its own...
-            animatedCigarettes = [];
+            animatedCigarettes.forEach(element => {
+                element.obj.x = machineX(element.machineIndex) + factoryAnimationAlignmentManager[0][1].sizeX / 2 + Math.floor(element.lifetime / 13)  * ((factoryAnimationAlignmentManager[0][2].sizeX / 1.3) / 1000) * 13;;
+                element.obj.y = factoryAnimationAlignmentManager[0][1].y + factoryAnimationAlignmentManager[0][1].sizeY / 1.45;
+                element.obj.sizeX = canvasWidth / 30;
+                element.obj.sizeY = canvasHeight / 16;
+            });
 
 
 
@@ -2086,10 +2091,10 @@
                         if(Math.random() * 100 <= 1 + 0.1 * machineLevels[i])
                         {
                             const cigProduction =  new canvasButton(
-                            machineX(i) + 190, 
-                            760 + 256 / 2 - 50, 
-                            64, 
-                            64,
+                            machineX(i) + factoryAnimationAlignmentManager[0][1].sizeX / 2,
+                            factoryAnimationAlignmentManager[0][1].y + factoryAnimationAlignmentManager[0][1].sizeY / 1.45,
+                            canvasWidth / 30,
+                            canvasHeight / 16,
                             new canvasButtonTexture(premiumCigarettesTexture, "", ""),
                             false,
                             true
@@ -2097,7 +2102,7 @@
 
                             cigProduction.zPosition = -1;
                             factorySceneUI.add(cigProduction);
-                            animatedCigarettes.push({obj: cigProduction, lifetime: 0});
+                            animatedCigarettes.push({obj: cigProduction, lifetime: 0, machineIndex: i});
                         
                             cigProduction.onClick = function()
                             {
@@ -2116,10 +2121,10 @@
                         else
                         {
                             const cigProduction =  new canvasButton(
-                            machineX(i) + 190, 
-                            760 + 256 / 2 - 50, 
-                            64, 
-                            64,
+                            machineX(i) + factoryAnimationAlignmentManager[0][1].sizeX / 2,
+                            factoryAnimationAlignmentManager[0][1].y + factoryAnimationAlignmentManager[0][1].sizeY / 1.45,
+                            canvasWidth / 30,
+                            canvasHeight / 16,
                             new canvasButtonTexture(cigarettesTexture, "", ""),
                             false,
                             true
@@ -2127,7 +2132,7 @@
 
                             cigProduction.zPosition = -1;
                             factorySceneUI.add(cigProduction);
-                            animatedCigarettes.push({obj: cigProduction, lifetime: 0});
+                            animatedCigarettes.push({obj: cigProduction, lifetime: 0, machineIndex: i});
                         
                             cigProduction.onClick = function()
                             {
@@ -2172,22 +2177,22 @@
         function moveCigarettesAlongConveyer()
         {
             animatedCigarettes.forEach(element => {
-                if(element.lifetime > 800)
+                if(element.lifetime > 750)
                 {
                     element.obj.alpha = Math.sin(element.lifetime * (element.lifetime / 12000)) / 2 + 0.75;
                 }
         
-                if(frame % Math.round(50 / 4) == 0)
+                if(frame % 13 == 0)
                     {
-                        element.obj.x += 4;
+                        element.obj.x += ((factoryAnimationAlignmentManager[0][2].sizeX / 1.3) / 1000) * 13;
                     }
                 element.lifetime++; // Lifetime
-                if(element.lifetime > 1250)
+                if(element.lifetime > 950)
                 {
                     element.obj.y += 1;
                     
                 }
-                if(element.lifetime > 1300)
+                if(element.lifetime > 1000)
                 {
                     factorySceneUI.elements.splice(factorySceneUI.elements.indexOf(element.obj),1);
                     animatedCigarettes.splice(animatedCigarettes.indexOf(element), 1);
@@ -2529,9 +2534,9 @@
             ctx.fillRect(canvasWidth - canvasWidth / 9 - 2, 2, canvasWidth / 9, canvasHeight / 4);
 
             ctx.globalAlpha = 1;
-            ctx.drawImage(cigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 50, canvasWidth / 30, canvasWidth / 30);
-            ctx.drawImage(upgradeCigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 12, canvasWidth / 30, canvasWidth / 30);
-            ctx.drawImage(premiumCigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 7, canvasWidth / 30, canvasWidth / 30);
+            ctx.drawImage(cigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 70, canvasWidth / 30, canvasWidth / 30);
+            ctx.drawImage(upgradeCigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 11.4, canvasWidth / 30, canvasWidth / 30);
+            ctx.drawImage(premiumCigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 6.2, canvasWidth / 30, canvasWidth / 30);
             ctx.fillStyle = "rgba(0,0,0,1)";
 
             ctx.font = `${Math.round(canvasHeight / 33)}px Titanic`;
@@ -2541,9 +2546,9 @@
 
             let textX = canvasWidth - canvasWidth / 9.5;
             let textSizeX = canvasWidth - canvasWidth / 30 - 2 - textX;
-            let textY0 = canvasHeight / 16;
+            let textY0 = canvasHeight / 20;
             let textY1 = canvasHeight / 8;
-            let textY2 = canvasHeight / 5.5;
+            let textY2 = canvasHeight / 5;
             
 
 
