@@ -557,7 +557,7 @@
                 techtreePannel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(160, 226, 255, 0.85)"), true);
                 closeButton = new canvasButton(techtreePannel.x + techtreePannel.sizeX - 35, techtreePannel.y + 5, 30, 30, new canvasButtonTexture("", "Red", "X"), true);
                 WOFpanel = new canvasPannel(myGameArea.canvas.width / 2 - 500, 50, 1000, myGameArea.canvas.height - 100, new canvasPannelTexture("", "white"), true);
-                WOFpanel.alpha = 0.8;
+                WOFpanel.alpha = 0;
                 
 
                 techtreePannel.addChild(closeButton);
@@ -2046,6 +2046,21 @@
             WOFbutton.sizeY = canvasHeight / 25;
             WOFbutton.x = canvasWidth / 2 + namePanel.sizeX;
             WOFbutton.y = 5;
+
+            claimButton.sizeX = canvasWidth / 5;
+            claimButton.sizeY = canvasHeight / 8;
+            claimButton.x = canvasWidth / 2 - claimButton.sizeX / 2;
+            claimButton.y = canvasHeight / 1.4;
+
+            prizeLabel.sizeX = canvasWidth / 8;
+            prizeLabel.sizeY = canvasHeight / 5;
+            prizeLabel.x = canvasWidth / 2 - prizeLabel.sizeX / 2;
+            prizeLabel.y = canvasHeight / 10;
+
+            WOFpanel.sizeX = canvasWidth;
+            WOFpanel.sizeY = canvasHeight;
+            WOFpanel.x = 0;
+            WOFpanel.y = 0;
         }
         
 
