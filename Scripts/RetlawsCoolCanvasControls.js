@@ -485,6 +485,29 @@ export class techtreeUpgrade extends canvasElement
                 this.Tooltip.drawSelf(ctx);
             }
 
+            hitTest(mouseX, mouseY, camera = null)
+            {
+                if(this.isAbsolute)
+                {
+                    const result =
+                    mouseX >= this.x + this.offset[0] &&
+                    mouseX <= this.x + this.sizeX + this.offset[0] &&
+                    mouseY >= this.y + this.offset[1] &&
+                    mouseY <= this.y + this.sizeY + this.offset[1];
+
+                    return result;
+                }
+                else
+                {
+                    const result =
+                    mouseX + camera.x >= this.x + this.offset[0] &&
+                    mouseX + camera.x <= this.x + this.sizeX + this.offset[0] &&
+                    mouseY >= this.y + this.offset[1] &&
+                    mouseY <= this.y + this.sizeY + this.offset[1];
+
+                    return result;
+                }
+            }
 
             drawSelf(ctx)
             {

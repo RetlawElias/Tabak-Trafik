@@ -18,7 +18,7 @@
 
 
 
-            const WORLD_WIDTH = 10000;
+            let WORLD_WIDTH = 10000;
             const TECHTREE_WIDTH = 1000;
             const VIEW_WIDTH = canvas.width;
             
@@ -97,7 +97,12 @@
 
             var partyInterval;
 
-            var audio = new Audio('Audio/Westward.wav');
+            var instanceSoundtrack = [new Audio('Audio/Westward.wav'), new Audio('Audio/Monotone_Labor.mp3')];
+            var audio;
+
+
+
+
             var jackpot = new Audio('Audio/winning.mp3');
             var Unbuyable = new Audio('Audio/Unbuyable.wav');
             var Win = new Audio('Audio/Jackpot.wav');
@@ -263,6 +268,8 @@
             const bricksGround = document.getElementById("BricksGround");
             const bricksGroundBordered = document.getElementById("BricksGroundBordered");
             const bricksTransition = document.getElementById("BricksTransition");
+            const easteregg1 = document.getElementById("Easteregg1");
+            const easteregg2 = document.getElementById("Easteregg2");
 
             const officeGround1 = document.getElementById("OfficeGround1");
             const officeGround2 = document.getElementById("OfficeGround2");
@@ -629,6 +636,7 @@
                     else
                     {
                         gameName = nameTextfield.Texture.text;
+                        if(gameName.toLowerCase() == "emocore") {instanceSoundtrack = [new Audio('Audio/Bring Me The Horizon - Sleepwalking.mp3'), new Audio('Audio/Bring Me The Horizon - sugar honey ice and tea (Lyric Video).mp3')];}
                         nameLabel.Texture.text = gameName;
                         gameStarted = true;
                         currentActiveScene = EScenes.FACTORY;
@@ -681,6 +689,11 @@
                 audioButton.onClick = function()
                 {
                     console.log("Clicked Audio");
+
+                    if(audio == null)
+                    {
+                        audio = instanceSoundtrack[Math.round(Math.random() * (instanceSoundtrack.length - 1))];
+                    }
                     
                     if(allowMusic)
                     {
@@ -777,11 +790,11 @@
                                 new particleEmitter(
                                     upgradeButtons[i].x + upgradeButtons[i].sizeX / 2 - camera.x,      // XPOS
                                     upgradeButtons[i].y + upgradeButtons[i].sizeY / 2,      // YPOS
-                                    2,                                                      // SIZE
+                                    canvasWidth / 1000,                                                           // SIZE
                                     new canvasPannelTexture("", "Yellow"),                     // Texture/Color
                                     4,                                                      // PSPU (Particles Spawned Per Frame)
-                                    1,                                                      // Min Velocity
-                                    7,                                                     // Max Velocity
+                                    canvasWidth / 2000,                                                      // Min Velocity
+                                    canvasWidth / 100,                                                     // Max Velocity
                                     12,                                                    // LifeTime Particle
                                     10,                                                     // LifeTime Emitter
                                     true,                                                   // Gravity = false
@@ -850,11 +863,11 @@
                             {
                                 currentActiveParticleEmitter.push(
                                     new pulseEmitter(
-                                        machineX(i) + 250, 
-                                        760,
+                                        machineX(i) + canvasWidth / 10, 
+                                        canvasHeight / 2,
                                         "White",
                                         1,
-                                        30,
+                                        canvasWidth / 50,
                                         18,
                                         15,
                                         true,
@@ -911,11 +924,11 @@
                                 new particleEmitter(
                                     batchUpgradeButtons[i].x + batchUpgradeButtons[i].sizeX / 2 - camera.x,      // XPOS
                                     batchUpgradeButtons[i].y + batchUpgradeButtons[i].sizeY / 2,      // YPOS
-                                    2,                                                      // SIZE
+                                    canvasWidth / 1000,                                                        // SIZE
                                     new canvasPannelTexture("", "Lime"),                     // Texture/Color
                                     8,                                                      // PSPU (Particles Spawned Per Frame)
-                                    1,                                                      // Min Velocity
-                                    10,                                                     // Max Velocity
+                                    canvasWidth / 2000,                                                      // Min Velocity
+                                    canvasWidth / 100,                                                  // Max Velocity
                                     10,                                                    // LifeTime Particle
                                     12,                                                     // LifeTime Emitter
                                     true,                                                   // Gravity = false
@@ -976,11 +989,11 @@
                             {
                                 currentActiveParticleEmitter.push(
                                     new pulseEmitter(
-                                        machineX(i) + 250, 
-                                        760,
+                                        machineX(i) + canvasWidth / 10, 
+                                        canvasHeight / 2,
                                         "White",
                                         1,
-                                        30,
+                                        canvasWidth / 50,
                                         18,
                                         15,
                                         true,
@@ -1035,11 +1048,11 @@
                                 new particleEmitter(
                                     stackUpgradeButtons[i].x + stackUpgradeButtons[i].sizeX / 2 - camera.x,      // XPOS
                                     stackUpgradeButtons[i].y + stackUpgradeButtons[i].sizeY / 2,      // YPOS
-                                    2,                                                      // SIZE
+                                    canvasWidth / 1000,                                                      // SIZE
                                     new canvasPannelTexture("", "Cyan"),                     // Texture/Color
                                     15,                                                      // PSPU (Particles Spawned Per Frame)
-                                    1,                                                      // Min Velocity
-                                    17,                                                     // Max Velocity
+                                    canvasWidth / 2000,                                                      // Min Velocity
+                                    canvasWidth / 100,                                                     // Max Velocity
                                     10,                                                    // LifeTime Particle
                                     10,                                                     // LifeTime Emitter
                                     true,                                                   // Gravity = false
@@ -1098,11 +1111,11 @@
                             {
                                 currentActiveParticleEmitter.push(
                                     new pulseEmitter(
-                                        machineX(i) + 250, 
-                                        760,
+                                        machineX(i) + canvasWidth / 10, 
+                                        canvasHeight / 2,
                                         "White",
                                         1,
-                                        30,
+                                        canvasWidth / 50,
                                         18,
                                         15,
                                         true,
@@ -1553,7 +1566,8 @@
 
                 if(allowMusic && audio.paused)
                 {
-                    audio.volume = 0.3;
+                    audio = instanceSoundtrack[Math.round(Math.random() * (instanceSoundtrack.length - 1))];
+                    if(gameName.toLowerCase() == "emocore"){audio.volume = 0.1;}else {audio.volume = 0.3;}
                     audio.play();
                 }
 
@@ -1569,10 +1583,12 @@
                     }
                 }
 
+                if(gameName.toLowerCase() == "emocore") {nameLabel.Texture.text = Math.random() * 1000000;} else {nameLabel.Texture.text = gameName;} 
+
                 // Clamp
                 camera.x = Math.max(0, Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
                 techtreePanelOffsetX = Math.max(-TECHTREE_WIDTH + VIEW_WIDTH, Math.min(TECHTREE_WIDTH - VIEW_WIDTH, techtreePanelOffsetX));
-                techtreePanelOffsetY = Math.max(-1000, Math.min(-500, techtreePanelOffsetY));
+                techtreePanelOffsetY = Math.max(-1000, Math.min(500, techtreePanelOffsetY));
 
                  techtreeUpgrades.forEach(element => {
                     element.offset[0] = techtreePanelOffsetX;
@@ -1632,6 +1648,12 @@
 
         function drawFactoryBackground()
         {
+            if(gameName.toLowerCase() == "emocore")
+            {
+                ctx.drawImage(easteregg1, camera.x, 0, canvasWidth, canvasHeight);
+            }
+            else
+            {
             for(let j = 0; j < 11; j++)
             {
                 for(let i = 0; i < 120; i++)
@@ -1650,30 +1672,7 @@
                     }
                 }
             }
-
-
-            
-            /*    !!! Obsolete Drawing System (Keep because the current Approach is absolutely fucked)  !!!!
-
-
-            for(let j = 0; j < (WORLD_WIDTH + myGameArea.canvas.width) / backgroundDetail; j++)
-            {
-                for(let i = 0; i < myGameArea.canvas.height / backgroundDetail + 1; i++)
-                {
-                    if(i + 3 < myGameArea.canvas.height / backgroundDetail)
-                    {
-                        ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                    }
-                    else if(i + 2 < myGameArea.canvas.height / backgroundDetail)
-                    {
-                        ctx.drawImage(bricksGroundBordered, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                    }
-                    else
-                    {
-                        ctx.drawImage(bricksGround, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                    }
-                }
-            }*/
+            }
         }
 
         function loadOfficeBitmap()
@@ -1910,41 +1909,6 @@
                     */
                 }
             }
-                    
-                        
-
-
-
-
-                        /*
-                        if(i + 3 < myGameArea.canvas.height / backgroundDetail)
-                        {
-                            if(i % 5 == 0 || i % 5 == 1)
-                            {
-                                ctx.fillStyle = "rgb(179, 179, 255)";
-                                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                                //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                            }
-                            else
-                            {
-                                ctx.fillStyle = "White";
-                                ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                                //ctx.drawImage(bricks, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                            }
-                        }
-                        else if(i + 2 < myGameArea.canvas.height / backgroundDetail)
-                        {
-                            ctx.fillStyle = "Grey";
-                            ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                            //ctx.drawImage(bricksGroundBordered, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                        }
-                        else
-                        {
-                            ctx.fillStyle = "Black";
-                            ctx.fillRect(backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                            //ctx.drawImage(bricksGround, backgroundDetail * j + j * -1, i * backgroundDetail + i * -1, backgroundDetail, backgroundDetail);
-                        }*/
-            
         }
             
 
@@ -1954,6 +1918,7 @@
             canvasWidth = canvas.width;
             canvasHeight = canvas.height;
 
+            WORLD_WIDTH = canvasWidth * 5;
 
             startButton.x = canvasWidth / 2 - (canvasWidth / 4 / 2);
             startButton.sizeX = canvasWidth / 4;
@@ -2011,14 +1976,20 @@
 
 
 
-            // Thats gonna be a hell on its own...
             animatedCigarettes.forEach(element => {
                 element.obj.x = machineX(element.machineIndex) + factoryAnimationAlignmentManager[0][1].sizeX / 2 + Math.floor(element.lifetime / 13)  * ((factoryAnimationAlignmentManager[0][2].sizeX / 1.3) / 1000) * 13;;
                 element.obj.y = factoryAnimationAlignmentManager[0][1].y + factoryAnimationAlignmentManager[0][1].sizeY / 1.45;
                 element.obj.sizeX = canvasWidth / 30;
                 element.obj.sizeY = canvasHeight / 16;
             });
-
+            
+            
+            // Thats gonna be a hell on its own...
+            techtreeUpgrades.forEach(element => {
+                
+                element.sizeX = canvasWidth / 10;
+                element.sizeY = canvasHeight / 17;
+            })
 
 
 
@@ -2189,7 +2160,7 @@
                 element.lifetime++; // Lifetime
                 if(element.lifetime > 950)
                 {
-                    element.obj.y += 1;
+                    element.obj.y += canvasHeight / 1000;
                     
                 }
                 if(element.lifetime > 1000)
@@ -2475,14 +2446,14 @@
                         techtreePannel.sizeX,
                         techtreePannel.sizeY
                     ),
+                );
 
                     ctx.fillRect(
                         techtreePannel.x + techtreePannel.sizeX - 20, 
                         techtreePannel.y + techtreePannel.sizeY - 20,
                         20,
                         20
-                    )
-                );
+                    );
             }
         }
 
@@ -2530,8 +2501,9 @@
 
         function drawCurrencyPanel()
         {
-            ctx.fillStyle = "rgba(255,255,255,0.33)";
-            ctx.fillRect(canvasWidth - canvasWidth / 9 - 2, 2, canvasWidth / 9, canvasHeight / 4);
+            ctx.globalAlpha = 0.33;
+            ctx.fillStyle = "rgb(255,255,255)";
+            if(gameName.toLowerCase() == "emocore"){ctx.drawImage(easteregg2, canvasWidth - canvasWidth / 9 - 2, 2, canvasWidth / 9, canvasHeight / 4)} else {ctx.fillRect(canvasWidth - canvasWidth / 9 - 2, 2, canvasWidth / 9, canvasHeight / 4)};
 
             ctx.globalAlpha = 1;
             ctx.drawImage(cigarettesTexture, canvasWidth - canvasWidth / 30 - 2, canvasHeight / 70, canvasWidth / 30, canvasWidth / 30);
@@ -2868,8 +2840,8 @@ function spawnAPulse()
 {
     currentActiveParticleEmitter.push(
         new pulseEmitter(
-            Math.floor(Math.random() * canvas.width), 
-            Math.floor(Math.random() * canvas.height),
+            Math.floor(Math.random() * canvasWidth), 
+            Math.floor(Math.random() * canvasHeight),
             "rgb("+ Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ")",
             0.2,
             Math.floor(Math.random() * 5),
