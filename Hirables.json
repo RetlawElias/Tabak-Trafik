@@ -1,0 +1,36 @@
+{
+  "Hirables": [
+    {
+      "Name": "John Parker",
+      "Description": "John Parker is a hard working individual that is sure to increase the profits of the company. \nHe does however not handle stress good.",
+      "Rarity": "Common",
+      "Minboost": 1.1,
+      "Maxboost": 1.5,
+      "Refresh-rate": 60000,
+      "Function": "Linear",
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "Name": "Mia Preston",
+      "Description": "Mia Preston can really have her moments. \nShe does however have many mood swings, either boosting or reducing her productivity.",
+      "Rarity": "Common",
+      "Minboost": 0.8,
+      "Maxboost": 2.5,
+      "Refresh-rate": 20000,
+      "Function": "Linear",
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    }
+  ]
+}

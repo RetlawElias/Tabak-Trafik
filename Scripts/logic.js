@@ -215,10 +215,13 @@
             var batchUpgradeButtons = [];
             var stackUpgradeButtons = [];
             var techtreeUpgrades = [];
+
+            var hiringOptions = [];
             
             var techtreePannel;
             var namePanel;
             var WOFpanel;
+            var rerollPanel;
 
             var achievementPanel;
             var achievementCollection;
@@ -254,6 +257,7 @@
             const TextureUpgrade = document.getElementById("Upgrade");
             const cigarettesTexture = document.getElementById("Cigarettes");
             const upgradeCigarettesTexture = document.getElementById("UpgradeCigarettes");
+            const reroll = document.getElementById("Reroll")
             const premiumCigarettesTexture = document.getElementById("PremiumCigarettes");
             const background = document.getElementById("Background");
             const cloudspattern = document.getElementById("Cloudpattern");
@@ -268,6 +272,13 @@
             const bricksGround = document.getElementById("BricksGround");
             const bricksGroundBordered = document.getElementById("BricksGroundBordered");
             const bricksTransition = document.getElementById("BricksTransition");
+            
+            const table = document.getElementById("Table");
+            const tower = document.getElementById("Tower");
+            const workerTop = document.getElementById("WorkerTop");
+            const workerBottom = document.getElementById("WorkerBottom");
+            const chair = document.getElementById("Chair");
+
             const easteregg1 = document.getElementById("Easteregg1");
             const easteregg2 = document.getElementById("Easteregg2");
 
@@ -551,6 +562,10 @@
                 achievementPanel = new canvasPannel(50, 50, myGameArea.canvas.width - 100, myGameArea.canvas.height - 100, new canvasPannelTexture("", "rgba(255, 253, 159, 0.85)"), true);
                 closeAchievementsButton = new canvasButton(achievementPanel.x + achievementPanel.sizeX - 35, achievementPanel.y + 5, 30, 30, new canvasButtonTexture("", "Red", "X"), true);
                 
+                rerollPanel = new canvasPannel(0,0,0,0,new canvasPannelTexture("", "White"), true, true);
+                rerollPanel.alpha = 0.8;
+                rerollPanel.setActive(false);
+
                 achievementPanel.addChild(closeAchievementsButton);
 
 
@@ -761,6 +776,8 @@
                 globalUI.add(trumpAnimation);
                 globalUI.add(smokinAnimation);
 
+                officeSceneUI.add(rerollPanel);
+
                 SceneManager.addScene(EScenes.INTRO, introSceneUI);
                 SceneManager.addScene(EScenes.FACTORY, factorySceneUI);
                 SceneManager.addScene(EScenes.OFFICE, officeSceneUI)
@@ -954,6 +971,16 @@
                             switch(i)
                             {
                                 case 0:
+                                    if(machineLevels[i] == 0)
+                                    {
+                                        cigarettesGain += 0.01;
+                                        machineCostMultipliers[i] += 1;
+                                    }
+                                    else
+                                    {
+                                        machineCostMultipliers[i] *= 1.1;
+                                    }
+
                                     cigarettesGain += 0.006 * 5;
                                     break;
                                 case 1:
@@ -1076,6 +1103,15 @@
                             switch(i)
                             {
                                 case 0:
+                                    if(machineLevels[i] == 0)
+                                    {
+                                        cigarettesGain += 0.01;
+                                        machineCostMultipliers[i] += 1;
+                                    }
+                                    else
+                                    {
+                                        machineCostMultipliers[i] *= 1.1;
+                                    }
                                     cigarettesGain += 0.006 * 10;
                                     break;
                                 case 1:
@@ -1163,6 +1199,47 @@
                 {
                     const x = machineX(i);
                     hiringButtons[i] = new canvasButton(x + 50, 400, 100, 100, new canvasButtonTexture(TextureUpgrade, "", hiringCosts[i].toString()), false);
+                    hiringButtons[i].onClick = function()
+                    {
+                        if(premiumCigarettes >= Math.ceil((hiringCosts[i])))
+                        {
+                            premiumCigarettes -= hiringCosts[i];
+                            hiringButtons[i].Texture.texture = reroll;
+
+                            rerollPanel.setActive(true);
+
+                            var inter = setInterval(addHiringOption, 100);
+
+                            setTimeout(() => 
+                            {
+                                clearInterval(inter);
+                                hiringOptions.forEach(element => {
+                                    element.onClick() = function ()
+                                    {
+                                        
+                                    }
+                                });
+                            }, 5000);
+
+                            var workerAnimationHalf2 = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [workerTop], 10, true, false, false);
+                            workerAnimationHalf2.freezeFrame = workerTop;
+                            var tableAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [table], 10, true, false, false);
+                            tableAnimation.freezeFrame = table;
+                            var workerAnimationHalf = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [workerBottom], 10, true, false, false);
+                            workerAnimationHalf.freezeFrame = workerBottom;
+                            var chairAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [chair], 10, true, false, false);
+                            chairAnimation.freezeFrame = chair;
+                            var towerAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [tower], 10, true, false, false);
+                            towerAnimation.freezeFrame = tower;
+
+
+                            officeSceneUI.add(workerAnimationHalf);
+                            officeSceneUI.add(workerAnimationHalf2);
+                            officeSceneUI.add(tableAnimation);
+                            officeSceneUI.add(towerAnimation);
+                            officeSceneUI.add(chairAnimation);
+                        }
+                    }
                     officeSceneUI.add(hiringButtons[i]);
                 }
             }
@@ -1973,6 +2050,20 @@
                 factoryAnimationAlignmentManager[i][3].sizeX = canvasWidth / 8;
                 factoryAnimationAlignmentManager[i][3].sizeY = canvasHeight / 4;
             }
+
+
+            for(let i = 0; i < hiringButtons.length; i++)
+            {
+                hiringButtons[i].x = machineX(i);
+                hiringButtons[i].y = canvasHeight / 3;
+                hiringButtons[i].sizeX = canvasWidth / 20;
+                hiringButtons[i].sizeY = canvasWidth / 20;
+            }
+
+            rerollPanel.x = 0;
+            rerollPanel.y = 0;
+            rerollPanel.sizeX = canvasWidth;
+            rerollPanel.sizeY = canvasHeight;
 
 
 
@@ -3047,3 +3138,177 @@ function checkAchievementsCollection()
             });
     });
 }
+
+function addHiringOption()
+{
+    if(hiringOptions.length >= 3)
+    {
+        officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(hiringOptions[0]),1);
+        hiringOptions.splice(0,1);
+        
+        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", "rgba(" + Math.floor(Math.random() * 255) + ",0,0,1)", ""), true, true);
+        obj.zPosition = -1;
+        hiringOptions.push(obj);
+        officeSceneUI.add(obj);
+
+        for(let i = 0; i < hiringOptions.length; i++)
+        {
+            hiringOptions[i].x = canvasWidth / 1.5 - i * (canvasWidth / 3.5);
+        }
+    }
+
+    if(hiringOptions.length < 3)
+    {
+        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", "rgba(" + Math.floor(Math.random() * 255) + ",0,0,1)", ""), true, true);
+        obj.zPosition = -1;
+        hiringOptions.push(obj);
+        officeSceneUI.add(obj);
+    }
+}
+
+
+
+async function fetchHirables(file) 
+{
+    try 
+    {
+        const response = await fetch(file);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+    
+        console.log(data);
+    
+    
+        for(let i = 0; i < data.Hirables.length; i++)
+        {
+            let obj = new techtreeUpgrade(
+                data.Hirables[i].Position[0],
+                data.Hirables[i].Position[1],
+                data.Hirables[i].Size[0], 
+                data.Hirables[i].Size[1], 
+                new canvasButtonTexture("", "Green", data.Upgrades[i].Name),
+                data.Hirables[i].Name,
+                data.Hirables[i].Cost,
+                data.Hirables[i].Condition,
+                true
+            );
+
+                        obj.localX = data.Upgrades[i].Position[0];
+                        obj.localY = data.Upgrades[i].Position[1];
+                        
+                        
+                        obj.Tooltip = new techtreeUpgradeToolTip(obj.x, obj.y, 200, 400, new canvasButtonTexture("", "rgb(163, 163, 163)", ""), data.Upgrades[i].ToolTip, true, true);
+                        
+                        obj.Tooltip.localX = obj.x + obj.sizeX + 25;
+                        obj.Tooltip.localY = obj.y;
+                        
+                        
+                        obj.Tooltip.updateOffset = function(panelX, panelY, panelW, panelH) {
+                            const centerX = panelX + panelW / 2;
+                            const centerY = panelY + panelH / 2;
+                            
+                            this.x = centerX + this.localX - this.sizeX / 2 + 50;
+                            this.y = centerY + this.localY;
+                        }
+                        
+                        
+                        
+                        
+                        
+                        // Function to update absolute position when panel moves
+                        obj.updateOffset = function(panelX, panelY, panelW, panelH) {
+                            const centerX = panelX + panelW / 2;
+                            const centerY = panelY + panelH / 2;
+                            
+                            this.x = centerX + this.localX - this.sizeX / 2;
+                            this.y = centerY + this.localY - this.sizeY / 2;
+                            
+                            obj.Tooltip.updateOffset(panelX, panelY, panelW, panelH);
+                        };
+                        
+                        // Set initial position
+                        obj.updateOffset(techtreePannel.x, techtreePannel.y);
+                        
+
+                        obj.onClick = function()
+                        {
+                            let isBuyable = true;
+                            obj.condition.forEach(element => {
+                                techtreeUpgrades.forEach(upgrad => {
+                                    if(element == upgrad.name)
+                                        {
+                                            if(!upgrad.isBought)
+                                                {
+                                            console.log("Condition ist nicht gekauft!");
+                                            isBuyable = false;
+                                        }
+                                        else
+                                            {
+                                            console.log("Condition ist gekauft!");
+                                        }
+                                    }
+                                }
+                            );
+                        });
+                        
+                        if(upgradeCigarettes >= obj.cost && !obj.isBought && isBuyable)
+                            {
+                                upgradeCigarettes -= obj.cost;
+                                const newAudio = new Audio('Audio/Collect.wav');
+                                newAudio.play();
+                                applyUpgrade(data.Upgrades[i].Effects);
+                                obj.isBought = true;
+                            }
+                            else
+                                {
+                                    if(allowAudio)
+                                        {
+                                            Unbuyable.play();
+                                        }
+                                    }
+                                    
+                                }
+                                
+                                obj.hitTest = function(mouseX, mouseY, camera = null)
+                                {
+                                    if(this.isAbsolute)
+                                        {
+                                            const result =
+                                            mouseX >= obj.x + techtreePanelOffsetX &&
+                                            mouseX <= obj.x + obj.sizeX  + techtreePanelOffsetX &&
+                                            mouseY >= obj.y + techtreePanelOffsetY &&
+                                            mouseY <= obj.y + obj.sizeY + techtreePanelOffsetY;
+                                            if(result)
+                                                {
+                                                    console.log("Clicked an Upgrade!");
+                                                }
+                                                return result;
+                            }
+                            else
+                                {
+                                    const result =
+                                    mouseX + camera.x >= obj.x &&
+                                    mouseX + camera.x <= obj.x + obj.sizeX &&
+                                    mouseY >= obj.y &&
+                                    mouseY <= obj.y + obj.sizeY;
+                                    console.log("Clicked an Upgrade!");
+                                    return result;
+                                }
+                            }
+                            
+                            
+                            techtreeUpgrades.push(obj);
+                        }  
+                        
+                        techtreeUpgrades.forEach(element => 
+                            {
+                                techtreePannel.addChild(element);
+                            });
+                            
+                            techtreePannel.setActive(false);
+                        } 
+                        catch (error) 
+                        {
+                            console.error('Failed to load Techtree:', error);
+                        }
+                    }
