@@ -2165,23 +2165,23 @@
                 officeAnimationAlignmentManager[i][1].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
                 officeAnimationAlignmentManager[i][1].y = canvasHeight / 1.8;
                 officeAnimationAlignmentManager[i][1].sizeX = canvasWidth / 5;
-                officeAnimationAlignmentManager[i][1].sizeY = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][1].sizeY = canvasHeight / 3;
                 officeAnimationAlignmentManager[i][2].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
                 officeAnimationAlignmentManager[i][2].y = canvasHeight / 1.8;
                 officeAnimationAlignmentManager[i][2].sizeX = canvasWidth / 5;
-                officeAnimationAlignmentManager[i][2].sizeY = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][2].sizeY = canvasHeight / 3;
                 officeAnimationAlignmentManager[i][3].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
                 officeAnimationAlignmentManager[i][3].y = canvasHeight / 1.8;
                 officeAnimationAlignmentManager[i][3].sizeX = canvasWidth / 5;
-                officeAnimationAlignmentManager[i][3].sizeY = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][3].sizeY = canvasHeight / 3;
                 officeAnimationAlignmentManager[i][4].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
                 officeAnimationAlignmentManager[i][4].y = canvasHeight / 1.8;
                 officeAnimationAlignmentManager[i][4].sizeX = canvasWidth / 5;
-                officeAnimationAlignmentManager[i][4].sizeY = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][4].sizeY = canvasHeight / 3;
                 officeAnimationAlignmentManager[i][5].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
                 officeAnimationAlignmentManager[i][5].y = canvasHeight / 1.8;
                 officeAnimationAlignmentManager[i][5].sizeX = canvasWidth / 5;
-                officeAnimationAlignmentManager[i][5].sizeY = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][5].sizeY = canvasHeight / 3;
             }
 
 
