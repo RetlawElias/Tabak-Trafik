@@ -1,8 +1,8 @@
-            import { UIManager, camera, SceneManager} from "./dom.js";
+            import { UIManager, camera, SceneManager, hirable, func} from "./dom.js";
             import { canvasButton, canvasButtonTexture, canvasPannel, canvasPannelTexture, techtreeUpgrade, 
                      particleEmitter, particle, inBoundChecker, techtreeUpgradeToolTip, canvasLabel, pulseEmitter, 
                      pulse, canvasAnimation, canvasTextfield } from "./RetlawsCoolCanvasControls.js";
-            import { loadFrames } from "./animationMaster.js";
+            import { loadFrames, loadHirable } from "./animationMaster.js";
             
 
 
@@ -112,6 +112,7 @@
 
 
             let factoryAnimationAlignmentManager = [];
+            let officeAnimationAlignmentManager = [];
       
 
             const EScenes = Object.freeze(
@@ -134,6 +135,12 @@
 
             let officeBitMap = [];
             let factoryBitMap = [];
+
+            let possibleHirables = [];
+            let currentActiveHirables = [];
+
+            let hirablesTops = new Map();
+            let hirablesBottoms = new Map();
 
 
             let selectedTextfield = null;
@@ -235,7 +242,10 @@
             var closeAchievementsButton;
             var claimButton;
             var WOFbutton;
-            
+            var openOfficeButton;
+            var openFactoryButton;
+
+
             var nameLabel;
             var prizeLabel;
             
@@ -543,8 +553,10 @@
                 achievementButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 180, 50, 50, new canvasButtonTexture("", "rgb(255,255,0)", "🏆"), true);
                 claimButton = new canvasButton(myGameArea.canvas.width / 2 - 200, myGameArea.canvas.height - 300, 400, 200, new canvasButtonTexture("", "Yellow", "Claim!"), true, false);
                 WOFbutton = new canvasButton(myGameArea.canvas.width / 2 + 200, 0, 200, 50, new canvasButtonTexture("", "Purple", "Wheel of Fortune"), true);
-
-
+                openOfficeButton = new canvasButton(myGameArea.canvas.width / 2 + 200, 0, 200, 50, new canvasButtonTexture("", "White", ">"), true);
+                openOfficeButton.alpha = 0.8;
+                openFactoryButton = new canvasButton(myGameArea.canvas.width / 2 + 200, 0, 200, 50, new canvasButtonTexture("", "White", "<"), true);
+                openFactoryButton.alpha = 0.8;
 
                 nameTextfield = new canvasTextfield(myGameArea.canvas.width / 2 - 250, 400, 500, 200, new canvasButtonTexture("", "White", ""), true);
                 nameTextfield.maxLength = 30;
@@ -651,6 +663,7 @@
                             startButton.active = false;
                             techtreeButton.setActive(true);
                             WOFbutton.setActive(true);
+                            openOfficeButton.setActive(true);
                         }
                     }
                     else
@@ -663,6 +676,7 @@
                         startButton.active = false;
                         techtreeButton.setActive(true);
                         WOFbutton.setActive(true);
+                        openOfficeButton.setActive(true);
                     }
                 }
 
@@ -706,6 +720,28 @@
                     }
                 }
                 
+                openFactoryButton.onClick = function()
+                {
+                    if(currentActiveScene == EScenes.OFFICE)
+                    {
+                         currentActiveScene = EScenes.FACTORY;
+                         openOfficeButton.setActive(true);
+                         openFactoryButton.setActive(false);
+                    }
+                }
+
+
+                openOfficeButton.onClick = function()
+                {
+                   if(currentActiveScene == EScenes.FACTORY)
+                    {
+                        currentActiveScene = EScenes.OFFICE;
+                        openOfficeButton.setActive(false);
+                         openFactoryButton.setActive(true);
+                    }
+                }
+
+
                 audioButton.onClick = function()
                 {
                     console.log("Clicked Audio");
@@ -756,6 +792,8 @@
                 techtreePannel.setActive(false);
                 achievementPanel.setActive(false);
                 WOFbutton.setActive(false);
+                openOfficeButton.setActive(false);
+                openFactoryButton.setActive(false);
 
                 //namePanel.addChild(nameLabel);
 
@@ -768,6 +806,8 @@
                 introSceneUI.add(nameTextfield);
 
                 globalUI.add(WOFbutton);
+                globalUI.add(openFactoryButton);
+                globalUI.add(openOfficeButton);
                 globalUI.add(techtreeButton);
                 globalUI.add(audioButton);
                 globalUI.add(soundButton);
@@ -1219,30 +1259,61 @@
                             {
                                 clearInterval(inter);
                                 hiringOptions.forEach(element => {
-                                    element.onClick() = function ()
+                                    element.onClick = function()
                                     {
+                                        hiringOptions.forEach(obj => {
+                                            officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(obj),1);
+                                        });
+                                        hiringOptions = [];
+                                        rerollPanel.setActive(false);
+
+                                        let hire = possibleHirables.find(item => item.name == element.Texture.text);
+                                        hire.activate();
+                                        currentActiveHirables.push([i,hire]);
+
+                                        for(let ii = 0; ii < officeAnimationAlignmentManager.length; ii++)
+                                        {
+                                            if(officeAnimationAlignmentManager[ii][0] == i)
+                                            {
+                                                officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(officeAnimationAlignmentManager[ii][1]),1);
+                                                officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(officeAnimationAlignmentManager[ii][2]),1);
+                                                officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(officeAnimationAlignmentManager[ii][3]),1);
+                                                officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(officeAnimationAlignmentManager[ii][4]),1);
+                                                officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(officeAnimationAlignmentManager[ii][5]),1);
+                                                officeAnimationAlignmentManager.splice(ii,1);
+                                                currentActiveHirables.forEach(e => {
+                                                    if(e[0] == i)
+                                                    {
+                                                        currentActiveHirables.splice(currentActiveHirables.indexOf(e),1);
+                                                    }
+
+                                                })
+                                            }
+                                        }
+
+                                        // Worker Animation
+                                        var workerAnimationHalf2 = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [hirablesTops.get(element.Texture.text)], 10, true, false, false);
+                                        workerAnimationHalf2.freezeFrame = hirablesTops.get(element.Texture.text);
+                                        var tableAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [table], 10, true, false, false);
+                                        tableAnimation.freezeFrame = table;
+                                        var workerAnimationHalf = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [hirablesBottoms.get(element.Texture.text)], 10, true, false, false);
+                                        workerAnimationHalf.freezeFrame = hirablesBottoms.get(element.Texture.text);
+                                        var chairAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [chair], 10, true, false, false);
+                                        chairAnimation.freezeFrame = chair;
+                                        var towerAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [tower], 10, true, false, false);
+                                        towerAnimation.freezeFrame = tower;
+
                                         
+                                        officeSceneUI.add(workerAnimationHalf);
+                                        officeSceneUI.add(workerAnimationHalf2);
+                                        officeSceneUI.add(tableAnimation);
+                                        officeSceneUI.add(towerAnimation);
+                                        officeSceneUI.add(chairAnimation);
+                                        officeAnimationAlignmentManager.push([i, workerAnimationHalf, workerAnimationHalf2, tableAnimation, towerAnimation, chairAnimation]);
+                                        realignGUI();
                                     }
                                 });
                             }, 5000);
-
-                            var workerAnimationHalf2 = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [workerTop], 10, true, false, false);
-                            workerAnimationHalf2.freezeFrame = workerTop;
-                            var tableAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [table], 10, true, false, false);
-                            tableAnimation.freezeFrame = table;
-                            var workerAnimationHalf = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [workerBottom], 10, true, false, false);
-                            workerAnimationHalf.freezeFrame = workerBottom;
-                            var chairAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [chair], 10, true, false, false);
-                            chairAnimation.freezeFrame = chair;
-                            var towerAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [tower], 10, true, false, false);
-                            towerAnimation.freezeFrame = tower;
-
-
-                            officeSceneUI.add(workerAnimationHalf);
-                            officeSceneUI.add(workerAnimationHalf2);
-                            officeSceneUI.add(tableAnimation);
-                            officeSceneUI.add(towerAnimation);
-                            officeSceneUI.add(chairAnimation);
                         }
                     }
                     officeSceneUI.add(hiringButtons[i]);
@@ -1262,6 +1333,8 @@
                 initialiseUI();
 
                 await fetchTechtree('Techtree.json');
+                await fetchHirables('Hirables.json');
+
 
                 techtreeUpgrades.forEach(element => {
                     techtreePannel.addChild(element);
@@ -1570,6 +1643,13 @@
                     else if(e.key === "r" && debug)
                     {
                         loadSaveState();
+                    }
+                    else if(e.key === "h" && debug)
+                    {
+                        console.log(possibleHirables[0]);
+                        console.log(possibleHirables[0].func);
+                        console.log(possibleHirables[0].func.retrieveValue(Math.random()));
+                        console.log(currentActiveHirables);
                     }
                 });
                     
@@ -2080,7 +2160,32 @@
                 element.obj.sizeY = canvasHeight / 16;
             });
             
-            
+            for(let i = 0; i < officeAnimationAlignmentManager.length; i++)
+            {
+                officeAnimationAlignmentManager[i][1].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
+                officeAnimationAlignmentManager[i][1].y = canvasHeight / 1.8;
+                officeAnimationAlignmentManager[i][1].sizeX = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][1].sizeY = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][2].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
+                officeAnimationAlignmentManager[i][2].y = canvasHeight / 1.8;
+                officeAnimationAlignmentManager[i][2].sizeX = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][2].sizeY = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][3].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
+                officeAnimationAlignmentManager[i][3].y = canvasHeight / 1.8;
+                officeAnimationAlignmentManager[i][3].sizeX = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][3].sizeY = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][4].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
+                officeAnimationAlignmentManager[i][4].y = canvasHeight / 1.8;
+                officeAnimationAlignmentManager[i][4].sizeX = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][4].sizeY = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][5].x = machineX(officeAnimationAlignmentManager[i][0]) - hiringButtons[officeAnimationAlignmentManager[i][0]].sizeX / 1.5;
+                officeAnimationAlignmentManager[i][5].y = canvasHeight / 1.8;
+                officeAnimationAlignmentManager[i][5].sizeX = canvasWidth / 5;
+                officeAnimationAlignmentManager[i][5].sizeY = canvasWidth / 5;
+            }
+
+
+
             // Thats gonna be a hell on its own...
 
             trumpAnimation.y = canvasHeight / 8;
@@ -2136,6 +2241,16 @@
             WOFbutton.sizeY = canvasHeight / 25;
             WOFbutton.x = canvasWidth / 2 + namePanel.sizeX;
             WOFbutton.y = 5;
+
+            openFactoryButton.sizeX = canvasWidth / 24;
+            openFactoryButton.sizeY = canvasHeight / 4;
+            openFactoryButton.x = 0;
+            openFactoryButton.y = canvasHeight / 2 - openFactoryButton.sizeY / 2;
+
+            openOfficeButton.sizeX = canvasWidth / 24;
+            openOfficeButton.sizeY = canvasHeight / 4;
+            openOfficeButton.x = canvasWidth - openOfficeButton.sizeX;
+            openOfficeButton.y = canvasHeight / 2 - openOfficeButton.sizeY / 2;
 
             claimButton.sizeX = canvasWidth / 5;
             claimButton.sizeY = canvasHeight / 8;
@@ -2404,16 +2519,16 @@
                     drawIntroScene();
                     return;
                 case EScenes.FACTORY: 
-
+                    drawCurrencyPanel();
                 
-                drawCurrencyPanel();
+                    updateUpgradeButtons();
                 
-                updateUpgradeButtons();
-                
-                cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"];
-                break;
+                    incrementCigarettes();
+                    break;
                 case EScenes.OFFICE:
                     drawCurrencyPanel();
+
+                    incrementCigarettes();
                     break;
             }
             if(gameStarted)
@@ -2432,6 +2547,22 @@
             globalUI.onHoverCheck(cursorX, cursorY, ctx);
 
             clientClick = false;
+        }
+
+        function incrementCigarettes()
+        {
+            let hirablesBoost = 1;
+
+                currentActiveHirables.forEach(element => {
+                    hirablesBoost += element[1].currentBoost;
+                });
+
+                if(hirablesBoost == 0)
+                {
+                    hirablesBoost = 1;
+                }
+
+                cigarettes += cigarettesGain * gameState["cigarettesGainMultiplier"] * hirablesBoost;
         }
 
 
@@ -3142,10 +3273,40 @@ function addHiringOption()
 {
     if(hiringOptions.length >= 3)
     {
+        let val = Math.floor(Math.random() * 100);
+        let addedHirablePool;
+        let buttonColor;
+
+        switch(true)
+        {
+            case val < 5:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Legendary");
+                buttonColor = "rgb(220, 220, 15)";
+                break;
+            case val < 10:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Epic");
+                buttonColor = "rgb(196, 31, 193)";
+                break;
+            case val < 25:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Rare");
+                buttonColor = "rgb(64, 132, 242)";
+                break;
+            case val < 50:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Uncommon");
+                buttonColor = "rgb(23, 191, 59)";
+                break;
+            default:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Common");
+                buttonColor = "rgb(170, 170, 170)";
+                break;
+        }
+
+        let addedHirable = addedHirablePool[Math.floor(Math.random() * (addedHirablePool.length-1))];
+
         officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(hiringOptions[0]),1);
         hiringOptions.splice(0,1);
         
-        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", "rgba(" + Math.floor(Math.random() * 255) + ",0,0,1)", ""), true, true);
+        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", buttonColor, addedHirable.name), true, true);
         obj.zPosition = -1;
         hiringOptions.push(obj);
         officeSceneUI.add(obj);
@@ -3158,7 +3319,37 @@ function addHiringOption()
 
     if(hiringOptions.length < 3)
     {
-        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", "rgba(" + Math.floor(Math.random() * 255) + ",0,0,1)", ""), true, true);
+        let val = Math.floor(Math.random() * 100);
+        let addedHirablePool;
+        let buttonColor;
+
+        switch(true)
+        {
+            case val < 2:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Legendary");
+                buttonColor = "rgb(220, 220, 15)";
+                break;
+            case val < 5:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Epic");
+                buttonColor = "rgb(196, 31, 193)";
+                break;
+            case val < 10:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Rare");
+                buttonColor = "rgb(64, 132, 242)";
+                break;
+            case val < 25:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Uncommon");
+                buttonColor = "rgb(23, 191, 59)";
+                break;
+            default:
+                addedHirablePool = possibleHirables.filter(hire => hire.rarity == "Common");
+                buttonColor = "rgb(170, 170, 170)";
+                break;
+        }
+
+        let addedHirable = addedHirablePool[Math.round(Math.random() * (addedHirablePool.length-1))];
+
+        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", buttonColor, addedHirable.name), true, true);
         obj.zPosition = -1;
         hiringOptions.push(obj);
         officeSceneUI.add(obj);
@@ -3180,134 +3371,40 @@ async function fetchHirables(file)
     
         for(let i = 0; i < data.Hirables.length; i++)
         {
-            let obj = new techtreeUpgrade(
-                data.Hirables[i].Position[0],
-                data.Hirables[i].Position[1],
-                data.Hirables[i].Size[0], 
-                data.Hirables[i].Size[1], 
-                new canvasButtonTexture("", "Green", data.Upgrades[i].Name),
+            let f;
+            switch(data.Hirables[i].Function)
+            {
+                case "Constant":
+                    f = new func(0,0,0,1,1,1, data.Hirables[i].Minboost); // f(x)= 0*X^0 + 0*X^0 + 0*X^0 + data.Minboost
+                    break;
+                case "Linear":
+                    f = new func(0,0,data.Hirables[i].Maxboost,1,1,1, data.Hirables[i].Minboost); // f(x)= 0*X^0 + 0*X^0 + data.Maxboost*X^1 + data.Minboost
+                    break;
+                case "Quadratic":
+                    f = new func(0,(data.Hirables[i].Maxboost / 2),(data.Hirables[i].Maxboost / 2),1,2,1,data.Hirables[i].Minboost); // f(x)= 0*X^0 + (data.Maxboost/2)*X^2 + (data.Maxboost/2)*X^1 + data.Minboost
+                    break;
+            }
+
+            let obj = new hirable(
                 data.Hirables[i].Name,
-                data.Hirables[i].Cost,
-                data.Hirables[i].Condition,
-                true
+                data.Hirables[i].Description,
+                data.Hirables[i].Rarity,
+                data.Hirables[i].RefreshRate,
+                f
             );
 
-                        obj.localX = data.Upgrades[i].Position[0];
-                        obj.localY = data.Upgrades[i].Position[1];
-                        
-                        
-                        obj.Tooltip = new techtreeUpgradeToolTip(obj.x, obj.y, 200, 400, new canvasButtonTexture("", "rgb(163, 163, 163)", ""), data.Upgrades[i].ToolTip, true, true);
-                        
-                        obj.Tooltip.localX = obj.x + obj.sizeX + 25;
-                        obj.Tooltip.localY = obj.y;
-                        
-                        
-                        obj.Tooltip.updateOffset = function(panelX, panelY, panelW, panelH) {
-                            const centerX = panelX + panelW / 2;
-                            const centerY = panelY + panelH / 2;
-                            
-                            this.x = centerX + this.localX - this.sizeX / 2 + 50;
-                            this.y = centerY + this.localY;
-                        }
-                        
-                        
-                        
-                        
-                        
-                        // Function to update absolute position when panel moves
-                        obj.updateOffset = function(panelX, panelY, panelW, panelH) {
-                            const centerX = panelX + panelW / 2;
-                            const centerY = panelY + panelH / 2;
-                            
-                            this.x = centerX + this.localX - this.sizeX / 2;
-                            this.y = centerY + this.localY - this.sizeY / 2;
-                            
-                            obj.Tooltip.updateOffset(panelX, panelY, panelW, panelH);
-                        };
-                        
-                        // Set initial position
-                        obj.updateOffset(techtreePannel.x, techtreePannel.y);
-                        
+            possibleHirables.push(obj);
 
-                        obj.onClick = function()
-                        {
-                            let isBuyable = true;
-                            obj.condition.forEach(element => {
-                                techtreeUpgrades.forEach(upgrad => {
-                                    if(element == upgrad.name)
-                                        {
-                                            if(!upgrad.isBought)
-                                                {
-                                            console.log("Condition ist nicht gekauft!");
-                                            isBuyable = false;
-                                        }
-                                        else
-                                            {
-                                            console.log("Condition ist gekauft!");
-                                        }
-                                    }
-                                }
-                            );
-                        });
-                        
-                        if(upgradeCigarettes >= obj.cost && !obj.isBought && isBuyable)
-                            {
-                                upgradeCigarettes -= obj.cost;
-                                const newAudio = new Audio('Audio/Collect.wav');
-                                newAudio.play();
-                                applyUpgrade(data.Upgrades[i].Effects);
-                                obj.isBought = true;
-                            }
-                            else
-                                {
-                                    if(allowAudio)
-                                        {
-                                            Unbuyable.play();
-                                        }
-                                    }
-                                    
-                                }
-                                
-                                obj.hitTest = function(mouseX, mouseY, camera = null)
-                                {
-                                    if(this.isAbsolute)
-                                        {
-                                            const result =
-                                            mouseX >= obj.x + techtreePanelOffsetX &&
-                                            mouseX <= obj.x + obj.sizeX  + techtreePanelOffsetX &&
-                                            mouseY >= obj.y + techtreePanelOffsetY &&
-                                            mouseY <= obj.y + obj.sizeY + techtreePanelOffsetY;
-                                            if(result)
-                                                {
-                                                    console.log("Clicked an Upgrade!");
-                                                }
-                                                return result;
-                            }
-                            else
-                                {
-                                    const result =
-                                    mouseX + camera.x >= obj.x &&
-                                    mouseX + camera.x <= obj.x + obj.sizeX &&
-                                    mouseY >= obj.y &&
-                                    mouseY <= obj.y + obj.sizeY;
-                                    console.log("Clicked an Upgrade!");
-                                    return result;
-                                }
-                            }
-                            
-                            
-                            techtreeUpgrades.push(obj);
-                        }  
-                        
-                        techtreeUpgrades.forEach(element => 
-                            {
-                                techtreePannel.addChild(element);
-                            });
-                            
-                            techtreePannel.setActive(false);
-                        } 
-                        catch (error) 
-                        {
-                            console.error('Failed to load Techtree:', error);
-                        }
-                    }
+            const name = obj.name;
+            var collection = loadHirable("Textures", name,1,1);
+
+            
+            hirablesBottoms.set(name, collection[0][0]);
+            hirablesTops.set(name, collection[0][1]);
+        }       
+    } 
+    catch (error) 
+    {
+        console.error('Failed to load Hirables:', error);
+    }
+}

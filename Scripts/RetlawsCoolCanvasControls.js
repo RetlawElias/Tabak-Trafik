@@ -577,8 +577,10 @@ export class pulseEmitter extends canvasElement
 
     spawnParticle()
     {
+        this.emitterlifetime--;
+
         // Decimal
-        if(this.PSPU % 1 !== 0)
+        if(this.PSPU % 1 !== 0 && this.emitterlifetime > 0)
         {
             for(let i = 0; i < Math.floor(this.PSPU); i++)
             {
@@ -620,7 +622,7 @@ export class pulseEmitter extends canvasElement
                 this.pulseChildren.push(p);
             }
         }
-        else
+        else if(this.emitterlifetime > 0)
         {
             for(let i = 0; i < Math.floor(this.PSPU); i++)
             {
@@ -646,7 +648,6 @@ export class pulseEmitter extends canvasElement
 
     drawSelf(ctx)
     {
-        this.emitterlifetime--;
 
         if(this.active)
         {
@@ -720,8 +721,10 @@ export class particleEmitter extends canvasElement
 
     spawnParticle()
     {
+        this.emitterlifetime--;
+
         // Decimal
-        if(this.PSPU % 1 !== 0)
+        if(this.PSPU % 1 !== 0 && this.emitterlifetime > 0)
         {
             for(let i = 0; i < Math.floor(this.PSPU); i++)
             {
@@ -759,7 +762,7 @@ export class particleEmitter extends canvasElement
                 );
             }
         }
-        else
+        else if(this.emitterlifetime > 0)
         {
             for(let i = 0; i < Math.floor(this.PSPU); i++)
             {
@@ -783,8 +786,6 @@ export class particleEmitter extends canvasElement
 
     drawSelf(ctx)
     {
-        this.emitterlifetime--;
-
         if(this.active)
         {
             for(let i = this.particleChildren.length - 1; i >= 0; i--)

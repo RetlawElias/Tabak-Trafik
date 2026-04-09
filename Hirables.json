@@ -1,12 +1,76 @@
 {
   "Hirables": [
     {
-      "Name": "John Parker",
+      "Name": "John Park",
       "Description": "John Parker is a hard working individual that is sure to increase the profits of the company. \nHe does however not handle stress good.",
       "Rarity": "Common",
       "Minboost": 1.1,
       "Maxboost": 1.5,
-      "Refresh-rate": 60000,
+      "RefreshRate": 60000,
+      "Function": "Linear",
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "Name": "Baldie Mert",
+      "Description": "John Parker is a hard working individual that is sure to increase the profits of the company. \nHe does however not handle stress good.",
+      "Rarity": "Uncommon",
+      "Minboost": 1.1,
+      "Maxboost": 1.5,
+      "RefreshRate": 60000,
+      "Function": "Linear",
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "Name": "Finnigan Kless",
+      "Description": "John Parker is a hard working individual that is sure to increase the profits of the company. \nHe does however not handle stress good.",
+      "Rarity": "Rare",
+      "Minboost": 1.1,
+      "Maxboost": 1.5,
+      "RefreshRate": 60000,
+      "Function": "Linear",
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "Name": "Huston Wen",
+      "Description": "John Parker is a hard working individual that is sure to increase the profits of the company. \nHe does however not handle stress good.",
+      "Rarity": "Epic",
+      "Minboost": 1.1,
+      "Maxboost": 1.5,
+      "RefreshRate": 60000,
+      "Function": "Linear",
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "Name": "Jack Howler",
+      "Description": "John Parker is a hard working individual that is sure to increase the profits of the company. \nHe does however not handle stress good.",
+      "Rarity": "Legendary",
+      "Minboost": 1.1,
+      "Maxboost": 1.5,
+      "RefreshRate": 60000,
       "Function": "Linear",
       "Effects": [
         {
@@ -22,7 +86,55 @@
       "Rarity": "Common",
       "Minboost": 0.8,
       "Maxboost": 2.5,
-      "Refresh-rate": 20000,
+      "RefreshRate": 20000,
+      "Function": "Linear",
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "Name": "John Park",
+      "Description": "Mia Preston can really have her moments. \nShe does however have many mood swings, either boosting or reducing her productivity.",
+      "Rarity": "Common",
+      "Minboost": 0.8,
+      "Maxboost": 2.5,
+      "RefreshRate": 20000,
+      "Function": "Linear",
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "Name": "Noelle Lis",
+      "Description": "Mia Preston can really have her moments. \nShe does however have many mood swings, either boosting or reducing her productivity.",
+      "Rarity": "Common",
+      "Minboost": 0.8,
+      "Maxboost": 2.5,
+      "RefreshRate": 20000,
+      "Function": "Linear",
+      "Effects": [
+        {
+          "target": "generalCostReduction",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "Name": "Winston Bert",
+      "Description": "Mia Preston can really have her moments. \nShe does however have many mood swings, either boosting or reducing her productivity.",
+      "Rarity": "Uncommon",
+      "Minboost": 0.8,
+      "Maxboost": 2.5,
+      "RefreshRate": 20000,
       "Function": "Linear",
       "Effects": [
         {

@@ -193,3 +193,54 @@ export class UIManager
                 x: 0,
                 y: 0
             };
+
+
+export class func
+{
+    constructor(a,b,c,expo1,expo2,expo3, abs)
+    {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.expo1 = expo1;
+        this.expo2 = expo2;
+        this.expo3 = expo3;
+        this.abs = abs;
+    }
+
+    retrieveValue(x)
+    {
+        return Number(Math.pow(this.a * x, this.expo1) + Math.pow(this.b * x, this.expo2) + Math.pow(this.c * x, this.expo3) + this.abs);
+    }
+}
+
+
+export class hirable
+{
+    constructor(name, description, rarity, refreshRate, func)
+    {
+        this.name = name;
+        this.description = description;
+        this.rarity = rarity;
+        this.refreshRate = refreshRate;
+        this.func = func;
+        this.interval = null;
+        this.currentBoost = 0;
+    }
+
+    refreshBoost()
+    {
+        this.currentBoost = this.func.retrieveValue(Math.random());
+    }
+
+    activate()
+    {
+        this.refreshBoost();
+        this.interval = setInterval(() => this.refreshBoost(), this.refreshRate);
+    }
+
+    deactivate()
+    {
+        clearInterval(this.interval);
+    }
+}
