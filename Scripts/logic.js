@@ -420,8 +420,13 @@
                             const centerX = panelX + panelW / 2;
                             const centerY = panelY + panelH / 2;
 
-                            this.x = centerX + this.localX - this.sizeX / 2;
-                            this.y = centerY + this.localY - this.sizeY / 2;
+                            // scales relatively to current vs original panel size
+                            // 1.1 is random number for extra space...if it works it works so why touch it
+                            const scaleX = panelW / (canvasWidth / 1.1);
+                            const scaleY = panelH / (canvasHeight / 1.1);
+
+                            this.x = centerX + this.localX * scaleX - this.sizeX / 2;
+                            this.y = centerY + this.localY * scaleY - this.sizeY / 2;
 
                             obj.Tooltip.updateOffset(panelX, panelY, panelW, panelH);
                         };
@@ -1933,15 +1938,16 @@
             techtreePannel.y = canvasHeight / 30;
 
             techtreeUpgrades.forEach(element => {
-                element.x = canvasWidth / 2;
-                element.y = 0;
                 element.sizeX = canvasWidth / 16;
                 element.sizeY = canvasHeight / 20;
                 element.Tooltip.sizeX = canvasWidth / 5;
                 element.Tooltip.sizeY = canvasWidth / 5;
+                if (techtreePannel && techtreePannel.sizeX) {
+                    element.updateOffset(techtreePannel.x, techtreePannel.y, techtreePannel.sizeX, techtreePannel.sizeY);
+    }
             });
 
-            // God forgive me
+            // God forgive me (the Holy One will never forgive us for working with this abomination of a language)
             for(let i = 0; i < upgradeButtons.length; i++)
             {
                 upgradeButtons[i].x = machineX(i);
@@ -1985,13 +1991,6 @@
             
             
             // Thats gonna be a hell on its own...
-            techtreeUpgrades.forEach(element => {
-                
-                element.sizeX = canvasWidth / 10;
-                element.sizeY = canvasHeight / 17;
-            })
-
-
 
             trumpAnimation.y = canvasHeight / 8;
             trumpAnimation.sizeX = canvasWidth / 4;
