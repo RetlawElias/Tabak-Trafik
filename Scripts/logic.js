@@ -109,7 +109,8 @@
             var Win = new Audio('Audio/Jackpot.wav');
             var Buy = new Audio('Audio/Collect.wav');
             var Collect = new Audio('Audio/DingDong.wav');
-            var Chirp = new Audio('Audio/Chirp.wav')
+            var Chirp = new Audio('Audio/Chirp.wav');
+            var upgradeSound = new Audio('Audio/Upgrade.mp3');
 
 
             let factoryAnimationAlignmentManager = [];
@@ -888,7 +889,7 @@
 
                             if(allowAudio)
                             {
-                                const newAudio = new Audio('Audio/Collect.wav');
+                                const newAudio = new Audio('Audio/Upgrade.mp3');
                                 newAudio.play();
                             }
 
@@ -979,7 +980,8 @@
                         {
                             if(allowAudio)
                             {
-                                Unbuyable.play();
+                                var newAudio = new Audio('Audio/Unbuyable.wav');
+                                newAudio.play();
                             }
                         }
                     }
@@ -1022,7 +1024,7 @@
 
                             if(allowAudio)
                             {
-                                const newAudio = new Audio('Audio/Collect.wav');
+                                const newAudio = new Audio('Audio/Upgrade.mp3');
                                 newAudio.play();
                             }
 
@@ -1115,7 +1117,8 @@
                         {
                             if(allowAudio)
                             {
-                                Unbuyable.play();
+                                var newAudio = new Audio('Audio/Unbuyable.wav');
+                                newAudio.play();
                             }
                         }
                     }
@@ -1156,7 +1159,7 @@
 
                             if(allowAudio)
                             {
-                                const newAudio = new Audio('Audio/Collect.wav');
+                                const newAudio = new Audio('Audio/Upgrade.mp3');
                                 newAudio.play();
                             }
 
@@ -1246,7 +1249,8 @@
                         {
                             if(allowAudio)
                             {
-                                Unbuyable.play();
+                                var newAudio = new Audio('Audio/Unbuyable.wav');
+                                newAudio.play();
                             }
                         }
                     }
