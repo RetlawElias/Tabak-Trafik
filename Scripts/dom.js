@@ -217,7 +217,7 @@ export class func
 
 export class hirable
 {
-    constructor(name, description, rarity, refreshRate, func)
+    constructor(name, description, rarity, refreshRate, func, minBoost = 0, maxBoost = 0, funcType = "Linear")
     {
         this.name = name;
         this.description = description;
@@ -226,6 +226,9 @@ export class hirable
         this.func = func;
         this.interval = null;
         this.currentBoost = 0;
+        this.minBoost = minBoost;
+        this.maxBoost = maxBoost;
+        this.funcType = funcType;
     }
 
     refreshBoost()

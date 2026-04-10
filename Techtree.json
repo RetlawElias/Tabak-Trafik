@@ -75,16 +75,12 @@
         }
       ]
     },
-
-
-
-
     {
-      "Name": "Upgrade Test 1",
-      "Cost": 5,
+      "Name": "Speed 1",
+      "Cost": 20,
       "Position": [-400, 100],
       "Size": [100, 50],
-      "ToolTip": "Dieses Upgrade hat einen viel zu langen Tooltip um zu testen wie das ganze später von dem Tooltip object formatiert wird. Nicht wie die meisten anderen Objecte wird hier nämlich nicht für eine Zeile formatiert, sondern für bis zu X viele! \nIncrease: \n +0.5% Income \n\n Decrease: \n -5 Upgrade Points",
+      "ToolTip": "Some simple mechanics here and there and the company can increase its productivity by a bit! \n\nIncrease: \n +0.5% Income \n\n Decrease: \n -20 Upgrade Points",
       "Condition": [],
       "Effects": [
         {
@@ -95,11 +91,11 @@
       ]
     },
     {
-      "Name": "Upgrade Test 2",
-      "Cost": 5,
+      "Name": "Speed 2",
+      "Cost": 30,
       "Position": [-600, 100],
       "Size": [100, 50],
-      "ToolTip": "Increase: \n +0.5% Income \n\n Decrease: \n -5 Upgrade Points",
+      "ToolTip": "Little invetments in alternative boxing-papers have the possibility of reducing overall costs! \n\nIncrease: \n +0.5% Income \n\n Decrease: \n -30 Upgrade Points",
       "Condition": [],
       "Effects": [
         {
@@ -110,12 +106,12 @@
       ]
     },
     {
-      "Name": "Upgrade Test 3",
-      "Cost": 5,
+      "Name": "Speed 3",
+      "Cost": 10,
       "Position": [-500, 300],
       "Size": [100, 50],
-      "ToolTip": "Increase: \n +0.5% Income \n\n Decrease: \n -5 Upgrade Points",
-      "Condition": ["Upgrade Test 1", "Upgrade Test 2"],
+      "ToolTip": "Competent coworkers, low costs and machine speed to the max. \nWhat more can you wish for? \n\nIncrease: \n +0.5% Income \n\n Decrease: \n -10 Upgrade Points",
+      "Condition": ["Speed 1", "Speed 2"],
       "Effects": [
         {
           "target": "cigarettesGainMultiplier",
@@ -125,11 +121,11 @@
       ]
     },
     {
-      "Name": "Increase Production Speed 1",
-      "Cost": 5,
+      "Name": "Efficiency 1",
+      "Cost": 15,
       "Position": [-100, 100],
       "Size": [100, 50],
-      "ToolTip": "Increase: \n +0.5% Income \n\n Decrease: \n -5 Upgrade Points",
+      "ToolTip": "A clean workspace makes the product cleaner. \nThe benefit outweights the costs!\n\nIncrease: \n +0.5% Income \n\n Decrease: \n -15 Upgrade Points",
       "Condition": [],
       "Effects": [
         {
@@ -140,11 +136,11 @@
       ]
     },
     {
-      "Name": "Increase Production Speed 2",
-      "Cost": 10,
+      "Name": "Efficiency 2",
+      "Cost": 20,
       "Position": [100, 100],
       "Size": [100, 50],
-      "ToolTip": "Increase: \n +1.5% Income \n\n Decrease: \n -10 Upgrade Points",
+      "ToolTip": "Worker motivation programs will make sure to keep the productivity at its peak! \n\nIncrease: \n +1.5% Income \n\n Decrease: \n -20 Upgrade Points",
       "Condition": [],
       "Effects": [
         {
@@ -155,12 +151,12 @@
       ]
     },
     {
-      "Name": "Increase Production Speed 3",
+      "Name": "Efficiency 3",
       "Cost": 25,
       "Position": [0, 220],
       "Size": [100, 50],
-      "ToolTip": "Increase: \n +5% Income \n\n Decrease: \n -25 Upgrade Points",
-      "Condition": ["Increase Production Speed 1","Increase Production Speed 2"],
+      "ToolTip": "Cut out the middle man! \nWe need to produce the product instead of just assembling. \n\nIncrease: \n +5% Income \n\n Decrease: \n -25 Upgrade Points",
+      "Condition": ["Efficiency 1","Efficiency 2"],
       "Effects": [
         {
           "target": "cigarettesGainMultiplier",

@@ -25,14 +25,14 @@
             
             // Wheel of fortune prizes 
             const segments = [
-                "100 Cigarettes",
-                "50 Cigarettes",
+                "10 💎Cigarettes",
+                "5 💎Cigarettes",
                 "Nothing",
-                "200 Cigarettes",
+                "20 💎Cigarettes",
                 "Spin Again",
-                "150 Cigarettes",
+                "20 💎Cigarettes",
                 "JACKPOT",
-                "75 Cigarettes"
+                "25 💎Cigarettes"
             ];
 
             const colors = [
@@ -85,6 +85,7 @@
             const slice = (Math.PI*2)/segments.length;
 
             let prizeClaimed = true;
+            let canSpin = true;
             let WOFrotation = 0;
             let WOFvelocity = 0;
             let WOFspinning = false;
@@ -210,11 +211,11 @@
 
             var cigarettesGain = 0;
             
-            var machineBaseCosts = [10, 30, 100, 250, 1000, 5000, 20000, 100000, 500000, 10000000];
+            var machineBaseCosts = [10, 50, 500, 2500, 10000, 50000, 125000, 5000000, 1000000, 50000000];
             var machineCostMultipliers = [0,1,1,1,1,1,1,1,1,1];
             var machineLevels = [0,0,0,0,0,0,0,0,0,0];
 
-            var hiringCosts = [10, 25, 50, 100, 200];
+            var hiringCosts = [10, 25, 50, 100, 200, 500, 1000];
 
             //UI
             var upgradeButtons = [];
@@ -256,7 +257,7 @@
             var cursorY;
 
             var ctx;
-
+            var guideToTechtree = true;
 
             
 
@@ -265,10 +266,10 @@
             // Textures
             const TextureButton = document.getElementById("Start");
             const TextureUpgrade = document.getElementById("Upgrade");
-            const cigarettesTexture = document.getElementById("Cigarettes");
-            const upgradeCigarettesTexture = document.getElementById("UpgradeCigarettes");
+            let cigarettesTexture = document.getElementById("Cigarettes");
+            let upgradeCigarettesTexture = document.getElementById("UpgradeCigarettes");
+            let premiumCigarettesTexture = document.getElementById("PremiumCigarettes");
             const reroll = document.getElementById("Reroll")
-            const premiumCigarettesTexture = document.getElementById("PremiumCigarettes");
             const background = document.getElementById("Background");
             const cloudspattern = document.getElementById("Cloudpattern");
             const mountains = document.getElementById("Mountains");
@@ -480,8 +481,11 @@
                             if(upgradeCigarettes >= obj.cost && !obj.isBought && isBuyable)
                             {
                                 upgradeCigarettes -= obj.cost;
-                                const newAudio = new Audio('Audio/Collect.wav');
-                                newAudio.play();
+                                if(allowAudio)
+                                {
+                                    const newAudio = new Audio('Audio/Collect.wav');
+                                    newAudio.play();
+                                }
                                 applyUpgrade(data.Upgrades[i].Effects);
                                 obj.isBought = true;
                             }
@@ -550,7 +554,8 @@
                 startButton = new canvasButton(myGameArea.canvas.width / 2 - 250, 100, 500, 250, new canvasButtonTexture(TextureButton), true);
                 audioButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 60, 50, 50, new canvasButtonTexture("", "Red", "🎵"), true);
                 soundButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 120, 50, 50, new canvasButtonTexture("", "Red", "🔊"), true);
-                achievementButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 180, 50, 50, new canvasButtonTexture("", "rgb(255,255,0)", "🏆"), true);
+                achievementButton = new canvasButton(myGameArea.canvas.width - 60, myGameArea.canvas.height - 180, 50, 50, new canvasButtonTexture("", "rgb(255,255,0)", "🏆"), true, false);
+                
                 claimButton = new canvasButton(myGameArea.canvas.width / 2 - 200, myGameArea.canvas.height - 300, 400, 200, new canvasButtonTexture("", "Yellow", "Claim!"), true, false);
                 WOFbutton = new canvasButton(myGameArea.canvas.width / 2 + 200, 0, 200, 50, new canvasButtonTexture("", "Purple", "Wheel of Fortune"), true);
                 openOfficeButton = new canvasButton(myGameArea.canvas.width / 2 + 200, 0, 200, 50, new canvasButtonTexture("", "White", ">"), true);
@@ -595,7 +600,7 @@
                 techtreePannel.addChild(closeButton);
                 
 
-                prizeLabel = new canvasLabel(canvas.width / 2 - 150, 100, 300, 150, new canvasButtonTexture("", "", "Winnings"), true, true);
+                prizeLabel = new canvasButton(canvas.width / 2 - 150, 100, 300, 150, new canvasButtonTexture("", "White", "Winnings"), true, true);
                 
                 trumpAnimation = new canvasAnimation(100, 100, 600, 800, trumpAnimationFrames, 1, true, true);
                 smokinAnimation = new canvasAnimation(0, 0, 400, 400, smokinAnimationFrames, 1, true, true, false);
@@ -625,6 +630,8 @@
 
                 techtreeButton.onClick = function() 
                 {
+                    
+
                     if(!achievementPanel.active)
                     {
                     if(allowAudio)
@@ -640,6 +647,12 @@
                         techtreePannel.setActive(true);
                     }
                     }
+
+                    if(guideToTechtree)
+                    {
+                        guideToTechtree = false;
+                        setTimeout(() =>alert("Use Mouse1 to move Window.\nUse Mouse3 to move Content. \nUse corner to resize. \nUse X to close."), 1000);
+                    }
                 };
 
                 
@@ -653,9 +666,9 @@
                         if(confirm("No name has been set for the factory... \nSelect a Random one?"))
                         {
                             gameName = 
-                                nameAttributeDatabase[Math.floor(Math.random() * (nameAttributeDatabase.length - 1))] + " " +
-                                nameThemeDatabase[Math.floor(Math.random() * (nameThemeDatabase.length - 1))] + " " +
-                                nameOperationDatabase[Math.floor(Math.random() * (nameOperationDatabase.length-1) )];
+                                nameAttributeDatabase[Math.round(Math.random() * (nameAttributeDatabase.length - 1))] + " " +
+                                nameThemeDatabase[Math.round(Math.random() * (nameThemeDatabase.length - 1))] + " " +
+                                nameOperationDatabase[Math.round(Math.random() * (nameOperationDatabase.length-1) )];
                             console.log(gameName);
                             nameLabel.Texture.text = gameName;
                             gameStarted = true;
@@ -670,6 +683,9 @@
                     {
                         gameName = nameTextfield.Texture.text;
                         if(gameName.toLowerCase() == "emocore") {instanceSoundtrack = [new Audio('Audio/Bring Me The Horizon - Sleepwalking.mp3'), new Audio('Audio/Bring Me The Horizon - sugar honey ice and tea (Lyric Video).mp3')];}
+                        if(gameName.toLowerCase() == "retlawelias") {instanceSoundtrack = [new Audio('Audio/Easteregg0.mp3'), new Audio('Audio/Easteregg1.mp3'), new Audio('Audio/Easteregg2.mp3')];}
+                        if(gameName.toLowerCase() == "jakob jones" || gameName.toLowerCase() == "jakobjones") 
+                            {cigarettesTexture = document.getElementById("Alcohol0"); upgradeCigarettesTexture = document.getElementById("Alcohol1"); premiumCigarettesTexture = document.getElementById("Alcohol2");}
                         nameLabel.Texture.text = gameName;
                         gameStarted = true;
                         currentActiveScene = EScenes.FACTORY;
@@ -714,8 +730,10 @@
 
                 WOFbutton.onClick = function()
                 {
-                    if (premiumCigarettes >= 50) {
-                        premiumCigarettes -= 50;
+                    if (canSpin) {
+                        canSpin = false;
+                        WOFbutton.alpha = 0.5;
+                        setTimeout(() => {canSpin = true; WOFbutton.alpha = 1;}, 60000);
                         spin(); 
                     }
                 }
@@ -1240,10 +1258,10 @@
 
 
 
-                for(let i = 0; i < 4; i++)
+                for(let i = 0; i < 6; i++)
                 {
                     const x = machineX(i);
-                    hiringButtons[i] = new canvasButton(x + 50, 400, 100, 100, new canvasButtonTexture(TextureUpgrade, "", hiringCosts[i].toString()), false);
+                    hiringButtons[i] = new canvasButton(x + 50, 400, 100, 100, new canvasButtonTexture(TextureUpgrade, "", hiringCosts[i].toString() + "💎"), false);
                     hiringButtons[i].onClick = function()
                     {
                         if(premiumCigarettes >= Math.ceil((hiringCosts[i])))
@@ -1259,15 +1277,17 @@
                             {
                                 clearInterval(inter);
                                 hiringOptions.forEach(element => {
-                                    element.onClick = function()
+                                    element[0].onClick = function()
                                     {
                                         hiringOptions.forEach(obj => {
-                                            officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(obj),1);
+                                            obj.forEach(e => {
+                                                officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(e),1);
+                                            });
                                         });
                                         hiringOptions = [];
                                         rerollPanel.setActive(false);
 
-                                        let hire = possibleHirables.find(item => item.name == element.Texture.text);
+                                        let hire = possibleHirables.find(item => item.name == element[1].Texture.text);
                                         hire.activate();
                                         currentActiveHirables.push([i,hire]);
 
@@ -1292,12 +1312,12 @@
                                         }
 
                                         // Worker Animation
-                                        var workerAnimationHalf2 = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [hirablesTops.get(element.Texture.text)], 10, true, false, false);
-                                        workerAnimationHalf2.freezeFrame = hirablesTops.get(element.Texture.text);
+                                        var workerAnimationHalf2 = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [hirablesTops.get(element[1].Texture.text)], 10, true, false, false);
+                                        workerAnimationHalf2.freezeFrame = hirablesTops.get(element[1].Texture.text);
                                         var tableAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [table], 10, true, false, false);
                                         tableAnimation.freezeFrame = table;
-                                        var workerAnimationHalf = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [hirablesBottoms.get(element.Texture.text)], 10, true, false, false);
-                                        workerAnimationHalf.freezeFrame = hirablesBottoms.get(element.Texture.text);
+                                        var workerAnimationHalf = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [hirablesBottoms.get(element[1].Texture.text)], 10, true, false, false);
+                                        workerAnimationHalf.freezeFrame = hirablesBottoms.get(element[1].Texture.text);
                                         var chairAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [chair], 10, true, false, false);
                                         chairAnimation.freezeFrame = chair;
                                         var towerAnimation = new canvasAnimation(hiringButtons[i].x, canvasHeight / 1.8, 256, 256, [tower], 10, true, false, false);
@@ -1312,6 +1332,12 @@
                                         officeAnimationAlignmentManager.push([i, workerAnimationHalf, workerAnimationHalf2, tableAnimation, towerAnimation, chairAnimation]);
                                         realignGUI();
                                     }
+                                    element[1].onClick = element[0].onClick;
+                                    element[2].onClick = element[0].onClick;
+                                    element[3].onClick = element[0].onClick;
+                                    element[4].onClick = element[0].onClick;
+                                    element[5].onClick = element[0].onClick;
+
                                 });
                             }, 5000);
                         }
@@ -1637,7 +1663,9 @@
                             gameName: gameName, 
                             cigarettes: cigarettes, 
                             upgradeCigarettes: upgradeCigarettes, 
-                            premiumCigarettes: premiumCigarettes
+                            premiumCigarettes: premiumCigarettes,
+                            machineBaseCosts: machineBaseCosts,
+                            machineCostMultipliers, machineCostMultipliers
                         });
                     }
                     else if(e.key === "r" && debug)
@@ -1745,7 +1773,10 @@
                     }
                 }
 
-                if(gameName.toLowerCase() == "emocore") {nameLabel.Texture.text = Math.random() * 1000000;} else {nameLabel.Texture.text = gameName;} 
+                if(gameName.toLowerCase() == "emocore") {nameLabel.Texture.text = Math.random() * 1000000;}
+                else if(gameName.toLowerCase() == "retlawelias") {nameLabel.Texture.text = Math.random() * 1000000;} 
+                else if(gameName.toLowerCase() == "jakobjones" || gameName.toLowerCase() == "jakob jones") {nameLabel.Texture.text = Math.random() * 1000000;} 
+                else {nameLabel.Texture.text = gameName;} 
 
                 // Clamp
                 camera.x = Math.max(0, Math.min(WORLD_WIDTH - VIEW_WIDTH, camera.x));
@@ -2097,8 +2128,8 @@
             techtreeUpgrades.forEach(element => {
                 element.sizeX = canvasWidth / 16;
                 element.sizeY = canvasHeight / 20;
-                element.Tooltip.sizeX = canvasWidth / 5;
-                element.Tooltip.sizeY = canvasWidth / 5;
+                element.Tooltip.sizeX = canvasWidth / 7;
+                element.Tooltip.sizeY = canvasHeight / 3;
                 if (techtreePannel && techtreePannel.sizeX) {
                     element.updateOffset(techtreePannel.x, techtreePannel.y, techtreePannel.sizeX, techtreePannel.sizeY);
     }
@@ -2257,8 +2288,8 @@
             claimButton.x = canvasWidth / 2 - claimButton.sizeX / 2;
             claimButton.y = canvasHeight / 1.4;
 
-            prizeLabel.sizeX = canvasWidth / 8;
-            prizeLabel.sizeY = canvasHeight / 5;
+            prizeLabel.sizeX = canvasWidth / 5;
+            prizeLabel.sizeY = canvasHeight / 8;
             prizeLabel.x = canvasWidth / 2 - prizeLabel.sizeX / 2;
             prizeLabel.y = canvasHeight / 10;
 
@@ -2497,6 +2528,7 @@
                 case EScenes.OFFICE:
 
                     drawOfficeBackground();
+                    drawHiringButtonsAndLabels();
                     break;
             }
             if(gameStarted)
@@ -2527,6 +2559,8 @@
                     break;
                 case EScenes.OFFICE:
                     drawCurrencyPanel();
+
+                    updateHiringButtons();
 
                     incrementCigarettes();
                     break;
@@ -2612,6 +2646,21 @@
                     }
                 );
                 ctx.fillText("Active Animations: " + CAA, 20, 170);
+            }
+        }
+
+        function updateHiringButtons()
+        {
+            for(let i = 0; i < hiringButtons.length; i++)
+            {
+                if(premiumCigarettes >= hiringCosts[i])
+                {
+                    hiringButtons[i].setAlpha(0.95);
+                }
+                else
+                {
+                    hiringButtons[i].setAlpha(0.6);
+                }
             }
         }
 
@@ -2850,6 +2899,27 @@
 
 
 
+        function drawHiringButtonsAndLabels()
+        {
+            for(let i = 0; i < hiringButtons.length; i++)
+            {
+                const val = hiringCosts[i];
+
+                switch(true)
+                {
+                    case val >= 1000000:
+                        hiringButtons[i].Texture.text = (val / 1000000).toFixed(2).toString() + "Mil💎";
+                        break;
+                    case val >= 1000:
+                        hiringButtons[i].Texture.text = (val / 1000).toFixed(2).toString() + "Tsd💎";
+                        break;
+                    default:
+                        hiringButtons[i].Texture.text = (val).toString() + "💎";
+                        break;
+                }
+            }
+        }
+
 
         function drawButtonsAndLabels()
         {
@@ -2931,7 +3001,7 @@
 
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
-            const radius = 200;
+            const radius = canvasHeight / 5;
 
             ctx.save();
 
@@ -2945,8 +3015,11 @@
                 let start = slice*i;
                 let end = slice*(i+1);
 
+                
                 ctx.beginPath();
                 ctx.moveTo(cx,cy);
+                ctx.strokeStyle = "Black";
+                ctx.lineWidth = 2;
                 ctx.arc(cx,cy,radius,start,end);
                 ctx.closePath();
 
@@ -2976,9 +3049,9 @@
 function drawPointer()
 {
 
-    const cx = canvas.width / 2 + 210;
+    const cx = canvas.width / 1.62;
     const cy = canvas.height / 2 ;
-    const radius = 200;
+    const radius = canvasHeight / 5;
 
     ctx.fillStyle = "red";
 
@@ -3020,25 +3093,24 @@ function detectPrize()
     let prize = segments[index];
     
     switch(prize) {
-        case "100 Cigarettes":  cigarettes += 100; if(allowAudio){Win.play()};  break;
-        case "50 Cigarettes":   cigarettes += 50; if(allowAudio){Win.play()};   break;
-        case "150 Cigarettes":  cigarettes += 150; if(allowAudio){Win.play()};  break;
-        case "200 Cigarettes":  cigarettes += 200; if(allowAudio){Win.play()};  break;
-        case "75 Cigarettes":   cigarettes += 75; if(allowAudio){Win.play()};   break;
+        case "10 💎Cigarettes":  premiumCigarettes += 10; if(allowAudio){Win.play()};  break;
+        case "20 💎Cigarettes":   premiumCigarettes += 20; if(allowAudio){Win.play()};   break;
+        case "25 💎Cigarettes":  premiumCigarettes += 25; if(allowAudio){Win.play()};  break;
+        case "5 💎Cigarettes":   premiumCigarettes += 5; if(allowAudio){Win.play()};   break;
         case "Spin Again":
             prizeLabel.Texture.text = "Spin Again!";
             prizeLabel.setActive(true);
-            setTimeout(() => spin(), 1000);
+            setTimeout(() => spin(), 250);
             break;
         case "Nothing":
             break;
         case "JACKPOT":
-            cigarettes += 10000;
+            premiumCigarettes += 50;
             break;
     }
     
 
-    prizeLabel.Texture.color = "Black";
+    prizeLabel.Texture.color = "White";
     prizeLabel.Texture.text = prize;
     prizeLabel.setActive(true);
     claimButton.setActive(true);
@@ -3212,6 +3284,8 @@ async function loadSaveState() {
         cigarettes = Number(JSON.parse(decrypted).cigarettes);
         upgradeCigarettes = Number(JSON.parse(decrypted).upgradeCigarettes);
         premiumCigarettes = Number(JSON.parse(decrypted).premiumCigarettes);
+        machineBaseCosts = Array(JSON.parse(decrypted).machineBaseCosts);
+        machineCostMultipliers = Array(JSON.parse(decrypted).machineCostMultipliers);
 
         console.log("Loaded state:", gameState);
     } catch (err) {
@@ -3273,7 +3347,7 @@ function addHiringOption()
 {
     if(hiringOptions.length >= 3)
     {
-        let val = Math.floor(Math.random() * 100);
+        let val = Math.round(Math.random() * 100);
         let addedHirablePool;
         let buttonColor;
 
@@ -3301,25 +3375,52 @@ function addHiringOption()
                 break;
         }
 
-        let addedHirable = addedHirablePool[Math.floor(Math.random() * (addedHirablePool.length-1))];
+        let addedHirable = addedHirablePool[Math.round(Math.random() * (addedHirablePool.length-1))];
 
-        officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(hiringOptions[0]),1);
+        hiringOptions[0].forEach(element => {
+            officeSceneUI.elements.splice(officeSceneUI.elements.indexOf(element),1);
+        });
+
         hiringOptions.splice(0,1);
         
-        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", buttonColor, addedHirable.name), true, true);
+        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", buttonColor, ""), true, true);
+        var HName = new canvasLabel(canvasWidth / 2, obj.y, obj.sizeX, obj.sizeY / 5, new canvasButtonTexture("", "", addedHirable.name), true, true);
+        var HMinboost = new canvasLabel(canvasWidth / 2, obj.y + HName.sizeY * 1.1, obj.sizeX, obj.sizeY / 6, new canvasButtonTexture("", "", "Minboost: " + addedHirable.minBoost + "x"), true, true);
+        var HMaxboost = new canvasLabel(canvasWidth / 2, obj.y + HName.sizeY * 1.1 + HMinboost.sizeY, obj.sizeX, obj.sizeY / 6, new canvasButtonTexture("", "", "Maxboost: " + addedHirable.maxBoost + "x"), true, true);
+        var HRefeshrate = new canvasLabel(canvasWidth / 2, obj.y + HName.sizeY * 1.1 + HMinboost.sizeY + HMaxboost.sizeY, obj.sizeX, obj.sizeY / 6, new canvasButtonTexture("", "", "Refresh-Rate: " + Math.round(addedHirable.refreshRate / 1000) + "Sec"), true, true);
+        var HFunction = new canvasLabel(canvasWidth / 2, obj.y + HName.sizeY * 1.1 + HMinboost.sizeY + HMaxboost.sizeY + HRefeshrate.sizeY, obj.sizeX, obj.sizeY / 6, new canvasButtonTexture("", "", "Function-Type: " + addedHirable.funcType), true, true);
+
+        
         obj.zPosition = -1;
-        hiringOptions.push(obj);
+        HName.zPosition = -2;
+        HMinboost.zPosition = -2;
+        HMaxboost.zPosition = -2;
+        HRefeshrate.zPosition = -2;
+        HFunction.zPosition = -2;
+
+
+        hiringOptions.push([obj, HName, HMinboost, HMaxboost, HRefeshrate, HFunction]);
         officeSceneUI.add(obj);
+        officeSceneUI.add(HName);
+        officeSceneUI.add(HMinboost);
+        officeSceneUI.add(HMaxboost);
+        officeSceneUI.add(HRefeshrate);
+        officeSceneUI.add(HFunction);
 
         for(let i = 0; i < hiringOptions.length; i++)
         {
-            hiringOptions[i].x = canvasWidth / 1.5 - i * (canvasWidth / 3.5);
+            hiringOptions[i][0].x = canvasWidth / 1.5 - i * (canvasWidth / 3.5);
+            hiringOptions[i][1].x = hiringOptions[i][0].x;
+            hiringOptions[i][2].x = hiringOptions[i][0].x;
+            hiringOptions[i][3].x = hiringOptions[i][0].x;
+            hiringOptions[i][4].x = hiringOptions[i][0].x;
+            hiringOptions[i][5].x = hiringOptions[i][0].x;
         }
     }
 
     if(hiringOptions.length < 3)
     {
-        let val = Math.floor(Math.random() * 100);
+        let val = Math.round(Math.random() * 100);
         let addedHirablePool;
         let buttonColor;
 
@@ -3349,10 +3450,29 @@ function addHiringOption()
 
         let addedHirable = addedHirablePool[Math.round(Math.random() * (addedHirablePool.length-1))];
 
-        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", buttonColor, addedHirable.name), true, true);
+        var obj = new canvasButton(canvasWidth / 2, canvasHeight / 2 - canvasHeight / 3 / 2, canvasWidth / 5, canvasHeight / 3, new canvasButtonTexture("", buttonColor), true, true);
+        var HName = new canvasLabel(canvasWidth / 2, obj.y, obj.sizeX, obj.sizeY / 5, new canvasButtonTexture("", "", addedHirable.name), true, true);
+        var HMinboost = new canvasLabel(canvasWidth / 2, obj.y + HName.sizeY * 1.1, obj.sizeX, obj.sizeY / 6, new canvasButtonTexture("", "", addedHirable.minBoost), true, true);
+        var HMaxboost = new canvasLabel(canvasWidth / 2, obj.y + HName.sizeY * 1.1 + HMinboost.sizeY, obj.sizeX, obj.sizeY / 6, new canvasButtonTexture("", "", addedHirable.maxBoost), true, true);
+        var HRefeshrate = new canvasLabel(canvasWidth / 2, obj.y + HName.sizeY * 1.1 + HMinboost.sizeY + HMaxboost.sizeY, obj.sizeX, obj.sizeY / 6, new canvasButtonTexture("", "", addedHirable.refreshRate), true, true);
+        var HFunction = new canvasLabel(canvasWidth / 2, obj.y + HName.sizeY * 1.1 + HMinboost.sizeY + HMaxboost.sizeY + HRefeshrate.sizeY, obj.sizeX, obj.sizeY / 6, new canvasButtonTexture("", "", addedHirable.funcType), true, true);
+
+        
         obj.zPosition = -1;
-        hiringOptions.push(obj);
+        HName.zPosition = -2;
+        HMinboost.zPosition = -2;
+        HMaxboost.zPosition = -2;
+        HRefeshrate.zPosition = -2;
+        HFunction.zPosition = -2;
+
+
+        hiringOptions.push([obj, HName, HMinboost, HMaxboost, HRefeshrate, HFunction]);
         officeSceneUI.add(obj);
+        officeSceneUI.add(HName);
+        officeSceneUI.add(HMinboost);
+        officeSceneUI.add(HMaxboost);
+        officeSceneUI.add(HRefeshrate);
+        officeSceneUI.add(HFunction);
     }
 }
 
@@ -3390,7 +3510,10 @@ async function fetchHirables(file)
                 data.Hirables[i].Description,
                 data.Hirables[i].Rarity,
                 data.Hirables[i].RefreshRate,
-                f
+                f,
+                data.Hirables[i].Minboost,
+                data.Hirables[i].Maxboost,
+                data.Hirables[i].Function
             );
 
             possibleHirables.push(obj);
